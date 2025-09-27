@@ -1,45 +1,79 @@
 #!/usr/bin/env python3
 """
-Programa lanzador del ejemplo - Demostración de violación SRP
+Ejemplo de solución para el SRP, donde las responsabilidades se dividen
+entre diferentes clases.
 """
-
-from senial_solid.lector_senial import LectorSenial
+import platform
+import os
+from senial_solid.adquisidor import Adquisidor
+from senial_solid.procesador import Procesador
+from senial_solid.visualizador import Visualizador
 
 
 class Lanzador:
     """
-    Programa Principal que demuestra el uso de la clase LectorSenial
-    que viola el principio de responsabilidad única (SRP)
+    Programa Lanzador que demuestra la aplicación del SRP
     """
 
     @staticmethod
-    def ejecutar() -> None:
+    def limpiar_pantalla():
         """
-        Ejecución del programa lanzador que procesa una señal de 10 muestras
+        Limpia la pantalla de manera compatible con diferentes sistemas operativos
+        """
+        if platform.system() == "Windows":
+            os.system("cls")
+        else:
+            os.system("clear")
 
-        :return: None
+    @staticmethod
+    def tecla():
+        """
+        Función que solicita una tecla para continuar
+        """
+        while True:
+            respuesta = input('Presione C para continuar> ').upper().strip()
+            if respuesta == "C":
+                break
+            print("Por favor, presione 'C' para continuar")
+
+    @staticmethod
+    def ejecutar():
+        """
+        Ejecuta el procesamiento de señal usando las clases que implementan SRP.
+        Se instancian las clases que participan del procesamiento.
         """
         try:
-            senial = LectorSenial(10)
+            # Instanciar las clases que implementan SRP
+            adquisidor = Adquisidor(5)
+            procesador = Procesador()
+            visualizador = Visualizador()
 
-            print("=== PROCESAMIENTO DE SEÑAL - VIOLACIÓN SRP ===")
-            print("Paso 1 - Adquiere la señal")
-            senial.leer_senial()
+            Lanzador.limpiar_pantalla()
+            print("=== DEMOSTRACIÓN SRP - PROCESAMIENTO DE SEÑALES ===")
+            print()
 
-            print("\nPaso 2 - Procesa la señal")
-            senial.procesar_senial()
+            # Paso 1 - Adquisición de la señal
+            print("Inicio - Paso 1 - Adquisición de la señal")
+            adquisidor.leer_senial()
+            senial_adquirida = adquisidor.obtener_senial_adquirida()
+            Lanzador.tecla()
 
-            print("\nPaso 3 - Muestra la señal")
-            senial.mostrar_senial()
+            # Paso 2 - Procesamiento de la señal adquirida
+            print("\nInicio - Paso 2 - Procesamiento")
+            procesador.procesar_senial(senial_adquirida)
+            senial_procesada = procesador.obtener_senial_procesada()
+            Lanzador.tecla()
 
-            print("\n=== PROCESAMIENTO COMPLETADO ===")
+            # Paso 3 - Visualización de la señal procesada
+            print("\nInicio - Paso 3 - Mostrar Señal")
+            visualizador.mostrar_datos(senial_procesada)
 
-        except ValueError as e:
-            print(f"Error: {e}")
+            print("\n=== FIN PROGRAMA - SRP APLICADO CORRECTAMENTE ===")
+
         except KeyboardInterrupt:
-            print("\nProceso interrumpido por el usuario")
+            print("\n\nProceso interrumpido por el usuario")
         except Exception as e:
-            print(f"Error inesperado: {e}")
+            print(f"\nError durante la ejecución: {e}")
 
 
 def ejecutar():
