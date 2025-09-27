@@ -10,19 +10,19 @@ Este proyecto es un caso de estudio didáctico y académico que demuestra la imp
 - **I** - Interface Segregation Principle (Principio de Segregación de Interfaces)
 - **D** - Dependency Inversion Principle (Principio de Inversión de Dependencias)
 
-## Estructura del Proyecto
+## Caso de Estudio
 
-```
-src/
-├── solid_principles/
-│   ├── srp/          # Single Responsibility Principle
-│   ├── ocp/          # Open/Closed Principle
-│   ├── lsp/          # Liskov Substitution Principle
-│   ├── isp/          # Interface Segregation Principle
-│   └── dip/          # Dependency Inversion Principle
-tests/
-examples/
-```
+### Requerimiento 1: Sistema de Procesamiento de Señales
+
+El sistema debe implementar un procesador de señales digitales que permita:
+
+1. **Captura de señales**: Simular el ingreso de una señal digital mediante la entrada de valores numéricos por consola, donde cada valor representa una muestra de la señal.
+
+2. **Procesamiento**: Procesar la señal capturada aplicando una amplificación con factor de 2x a cada muestra de la señal original.
+
+3. **Visualización**: Mostrar tanto la señal original como la señal amplificada de manera clara y organizada.
+
+**Objetivo didáctico**: Implementar este sistema aplicando progresivamente los principios SOLID, mostrando cómo cada principio mejora la estructura, mantenibilidad y extensibilidad del código.
 
 ## Instalación
 
