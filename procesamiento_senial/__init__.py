@@ -11,8 +11,8 @@ Versión: 1.0.0
 Autor: Victor Valotto
 """
 
-from .procesador import Procesador
+from .procesador import Procesador, ProcesadorUmbral
 
 __version__ = "1.0.0"
 __author__ = "Victor Valotto"
-__all__ = ['Procesador']
+__all__ = ['Procesador', 'ProcesadorUmbral']

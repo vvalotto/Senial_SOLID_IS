@@ -6,7 +6,7 @@ donde las responsabilidades se dividen entre diferentes clases y paquetes.
 import platform
 import os
 from adquisicion_senial import Adquisidor
-from procesamiento_senial import Procesador
+from procesamiento_senial import Procesador, ProcesadorUmbral  # ⚠️ DEPENDENCIAS MÚLTIPLES
 from presentacion_senial import Visualizador
 
 
@@ -103,14 +103,13 @@ class Lanzador:
         Permite seleccionar el tipo de procesamiento de manera interactiva.
         """
         try:
-            # Instanciar las clases que implementan SRP
+            # Instanciar componentes base
             adquisidor = Adquisidor(5)
-            procesador = Procesador()
             visualizador = Visualizador()
 
             Lanzador.limpiar_pantalla()
-            print("=== DEMOSTRACIÓN PRINCIPIOS SOLID - PROCESAMIENTO DE SEÑALES v3.0 ===")
-            print("Sistema con soporte para múltiples tipos de procesamiento")
+            print("=== DEMOSTRACIÓN OCP 'TÉCNICO' - PROCESAMIENTO DE SEÑALES v3.0 ===")
+            print("Sistema que cumple OCP localmente pero crea problemas de dependencias")
             print()
 
             # Paso 1 - Adquisición de la señal
@@ -126,15 +125,28 @@ class Lanzador:
             tipo_procesamiento, parametro, descripcion = Lanzador.seleccionar_tipo_procesamiento()
             Lanzador.tecla()
 
-            # Paso 2 - Procesamiento de la señal adquirida
+            # ⚠️ PROBLEMA DE DEPENDENCIAS: Lanzador debe conocer clases concretas
             print(f"\n⚙️  PASO 2 - PROCESAMIENTO: {descripcion.upper()}")
             print("-" * 40)
-            print(f"Aplicando procesamiento tipo '{tipo_procesamiento}' con parámetro {parametro}")
+            print("⚠️  NOTA: Observe cómo el Lanzador debe elegir entre clases concretas...")
 
-            procesador.procesar_senial(senial_adquirida, tipo_procesamiento, parametro)
+            # ❌ LÓGICA CONDICIONAL EN LANZADOR (problema de dependencias)
+            if tipo_procesamiento == "amplificar":
+                print("Usando clase Procesador original (sin modificar - cumple OCP)")
+                procesador = Procesador()  # Clase original, constructor sin parámetros
+                procesador.procesar_senial(senial_adquirida)  # Interfaz original
+
+            elif tipo_procesamiento == "umbral":
+                print(f"Usando nueva clase ProcesadorUmbral (extensión - cumple OCP)")
+                procesador = ProcesadorUmbral(parametro)  # ⚠️ Interfaz inconsistente
+                procesador.procesar_senial(senial_adquirida)  # Misma interfaz externa
+
+            else:
+                raise ValueError(f"Tipo '{tipo_procesamiento}' no soportado")
+
             senial_procesada = procesador.obtener_senial_procesada()
-
             print("✅ Procesamiento completado")
+            print("⚠️  PROBLEMA: Lanzador acoplado a clases concretas")
             Lanzador.tecla()
 
             # Paso 3 - Visualización de la señal procesada
@@ -152,13 +164,23 @@ class Lanzador:
             print(f"🔸 SEÑAL PROCESADA ({descripcion}):")
             visualizador.mostrar_datos(senial_procesada)
 
-            print(f"\n🎉 PROCESAMIENTO COMPLETADO EXITOSAMENTE")
-            print("="*60)
-            print("✅ Principios SOLID aplicados:")
-            print("   • SRP: Cada clase tiene una responsabilidad única")
-            print(f"   • OCP: Procesador extensible con nuevos tipos (actual: {tipo_procesamiento})")
-            print("   • Sistema modular y mantenible")
-            print("="*60)
+            print(f"\n🎉 DEMOSTRACIÓN COMPLETADA")
+            print("="*70)
+            print("✅ OCP 'TÉCNICAMENTE' CUMPLIDO:")
+            print("   • Procesador original NO modificado")
+            print("   • Nueva funcionalidad agregada via ProcesadorUmbral")
+            print("   • Código existente preservado")
+            print()
+            print("⚠️  PERO PROBLEMAS CREADOS:")
+            print("   ❌ Lanzador acoplado a clases concretas")
+            print("   ❌ Interfaces inconsistentes (constructores diferentes)")
+            print("   ❌ Lógica condicional movida a capa superior")
+            print("   ❌ Violación de DIP (dependencias hacia concreciones)")
+            print("   ❌ Escalabilidad comprometida")
+            print()
+            print("📚 LECCIÓN: Cumplir OCP localmente puede crear problemas globales")
+            print("🎯 PRÓXIMO PASO: Aplicar OCP correctamente con abstracciones")
+            print("="*70)
 
         except KeyboardInterrupt:
             print("\n\n⚠️  Proceso interrumpido por el usuario")
