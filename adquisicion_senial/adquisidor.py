@@ -4,7 +4,7 @@ Módulo que define la clase Adquisidor de señales.
 Aplicación del SRP: Esta clase tiene una única responsabilidad:
 adquirir datos de entrada para formar una señal digital.
 """
-from senial_solid.senial import Senial
+from dominio_senial import Senial
 
 
 class Adquisidor:

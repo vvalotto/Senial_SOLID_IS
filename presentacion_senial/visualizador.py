@@ -4,7 +4,7 @@ Módulo que define la clase Visualizador de señales.
 Aplicación del SRP: Esta clase tiene una única responsabilidad:
 mostrar los datos de una señal digital.
 """
-from senial_solid.senial import Senial
+from dominio_senial import Senial
 
 
 class Visualizador:

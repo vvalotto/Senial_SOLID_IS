@@ -4,7 +4,7 @@ Módulo que define la clase Procesador de señales.
 Aplicación del SRP: Esta clase tiene una única responsabilidad:
 procesar señales digitales aplicando amplificación x2.
 """
-from senial_solid.senial import Senial
+from dominio_senial import Senial
 
 
 class Procesador:

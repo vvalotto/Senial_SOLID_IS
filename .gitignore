@@ -116,3 +116,15 @@ dmypy.json
 .idea/
 *.swp
 *.swo
+
+# Project specific
+# Distribution archives
+*.tar.gz
+*.zip
+
+# Test directories
+prueba_install/
+test_*/
+
+# Cleanup script artifacts
+cleanup_build_artifacts.py

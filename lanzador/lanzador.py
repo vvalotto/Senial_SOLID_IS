@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """
-Ejemplo de solución para el SRP, donde las responsabilidades se dividen
-entre diferentes clases.
+Lanzador principal del sistema que demuestra la aplicación de principios SOLID,
+donde las responsabilidades se dividen entre diferentes clases y paquetes.
 """
 import platform
 import os
-from senial_solid.adquisidor import Adquisidor
-from senial_solid.procesador import Procesador
-from senial_solid.visualizador import Visualizador
+from adquisicion_senial import Adquisidor
+from procesamiento_senial import Procesador
+from presentacion_senial import Visualizador
 
 
 class Lanzador:
     """
-    Programa Lanzador que demuestra la aplicación del SRP
+    Programa Lanzador que demuestra la aplicación de principios SOLID
     """
 
     @staticmethod
@@ -39,7 +39,7 @@ class Lanzador:
     @staticmethod
     def ejecutar():
         """
-        Ejecuta el procesamiento de señal usando las clases que implementan SRP.
+        Ejecuta el procesamiento de señal usando las clases que implementan principios SOLID.
         Se instancian las clases que participan del procesamiento.
         """
         try:
@@ -49,7 +49,7 @@ class Lanzador:
             visualizador = Visualizador()
 
             Lanzador.limpiar_pantalla()
-            print("=== DEMOSTRACIÓN SRP - PROCESAMIENTO DE SEÑALES ===")
+            print("=== DEMOSTRACIÓN PRINCIPIOS SOLID - PROCESAMIENTO DE SEÑALES ===")
             print()
 
             # Paso 1 - Adquisición de la señal
@@ -68,7 +68,7 @@ class Lanzador:
             print("\nInicio - Paso 3 - Mostrar Señal")
             visualizador.mostrar_datos(senial_procesada)
 
-            print("\n=== FIN PROGRAMA - SRP APLICADO CORRECTAMENTE ===")
+            print("\n=== FIN PROGRAMA - PRINCIPIOS SOLID APLICADOS CORRECTAMENTE ===")
 
         except KeyboardInterrupt:
             print("\n\nProceso interrumpido por el usuario")

@@ -3,40 +3,31 @@ import pathlib
 
 # Leer el README para la descripción larga
 HERE = pathlib.Path(__file__).parent
-README = (HERE / "README.md").read_text(encoding="utf-8")
+README_PATH = HERE / "README.md"
+if README_PATH.exists():
+    README = README_PATH.read_text(encoding="utf-8")
+else:
+    README = "Paquete de adquisición de datos para procesamiento de señales digitales"
 
 setup(
-    name="Senial_SOLID_IS",
-    version="0.1.0",
-    description="Caso de estudio didáctico de los principios SOLID en Python",
+    name="adquisicion-senial",
+    version="1.0.0",
+    description="Adquisición de datos para procesamiento de señales digitales",
     long_description=README,
     long_description_content_type="text/markdown",
-    author="Proyecto Académico",
-    author_email="proyecto.academico@ejemplo.com",
+    author="Victor Valotto",
+    author_email="vvalotto@gmail.com",
     url="https://github.com/vvalotto/Senial_SOLID_IS",
     license="MIT",
     packages=find_packages(),
     python_requires=">=3.8",
     install_requires=[
-        "pytest>=7.0.0",
-        "pytest-cov>=4.0.0",
+        "dominio-senial>=1.0.0",
     ],
-    extras_require={
-        "dev": [
-            "black>=22.0.0",
-            "flake8>=4.0.0",
-            "mypy>=0.910",
-        ],
-    },
-    entry_points={
-        "console_scripts": [
-            "solid-demo=lanzador:ejecutar",
-        ],
-    },
-    py_modules=["lanzador"],
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Education",
+        "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
@@ -46,12 +37,13 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Topic :: Education",
+        "Topic :: Scientific/Engineering :: Information Analysis",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    keywords="solid principles, software engineering, design patterns, education",
+    keywords="solid principles, data acquisition, signal processing, education",
     project_urls={
         "Bug Reports": "https://github.com/vvalotto/Senial_SOLID_IS/issues",
         "Source": "https://github.com/vvalotto/Senial_SOLID_IS",
-        "Documentation": "",
+        "Documentation": "https://github.com/vvalotto/Senial_SOLID_IS/blob/main/README.md",
     },
 )
