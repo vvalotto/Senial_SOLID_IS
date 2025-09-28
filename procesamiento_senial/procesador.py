@@ -1,41 +1,57 @@
 """
-Módulo que define la clase Procesador de señales.
-
-Aplicación del SRP: Esta clase tiene una única responsabilidad:
-procesar señales digitales aplicando amplificación x2.
+Define la clase procesador de la senial
+Cambio 1:
+Uso de la funcion map para calcular valores de la lista
 """
-from dominio_senial import Senial
+from dominio_senial.senial import *
 
 
-class Procesador:
+class Procesador(object):
     """
-    Procesador de señales digitales.
-
-    Responsabilidad única: Aplicar amplificación x2 a señales digitales.
-    Esta clase se encarga exclusivamente del procesamiento de datos,
-    separando esta responsabilidad de la adquisición y visualización.
+    Constructor: Inicializa la clase
     """
-
     def __init__(self):
-        """
-        Inicializa el procesador de señales.
-        """
         self._senial_procesada = Senial()
+        return
 
-    def procesar_senial(self, senial):
+    def procesar_senial(self, senial, tipo_procesamiento, parametro):
         """
-        Procesa una señal aplicando amplificación x2.
-
-        :param senial: Señal de entrada a procesar
+        Metodo que realiza el procesamiento de la senial
+        :param senial: a procesar
+        :param tipo_procesamiento: define que tipo de calculo hay que haces
+        :param parametro: parametro relacionado con tipo de procesamiento
+        :return:
         """
         print("Procesando...")
-        for i in range(senial.obtener_tamanio()):
-            self._senial_procesada.poner_valor(senial.obtener_valor(i) * 2)
+        if tipo_procesamiento == "amplificar":
+            self._amplificacion = parametro
+            self._senial_procesada._valores = list(map(self.funcion_doble, senial._valores))
+        elif tipo_procesamiento == "umbral":
+            self._umbral = parametro
+            self._senial_procesada._valores = list(map(self.funcion_umbral, senial._valores))
+        else:
+            return Exception()
+        return
 
     def obtener_senial_procesada(self):
         """
-        Retorna la señal procesada.
-
-        :return: Señal con los valores procesados
+        Devuelve la senial procesada
+        :return:
         """
         return self._senial_procesada
+
+    def funcion_doble(self, valor):
+        """
+        Funcion que retorna el doble de valor de entrada
+        :param valor:
+        :return:
+        """
+        return valor * self._amplificacion
+
+    def funcion_umbral(self, valor):
+        """
+        Funcion que filtra valores con un umbral
+        :param valor:
+        :return:
+        """
+        return valor if valor < self._umbral else 0
