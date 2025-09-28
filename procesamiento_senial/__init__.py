@@ -4,15 +4,25 @@ Paquete procesamiento_senial - Algoritmos de procesamiento
 Este paquete contiene todas las clases responsables de aplicar algoritmos
 y transformaciones sobre señales digitales.
 
-Aplicación del SRP a nivel de paquete: Este paquete tiene la responsabilidad única
-de gestionar el procesamiento y transformación de señales digitales.
+Aplicación de principios SOLID:
+- SRP: Responsabilidad única de gestionar procesamiento de señales
+- OCP: Extensible para nuevos tipos de procesamiento sin modificar código existente
 
-Versión: 1.0.0
+Arquitectura basada en patrón Strategy con abstracciones:
+- BaseProcesador: Clase abstracta que define el contrato común
+- ProcesadorAmplificador: Implementación para amplificación de señales
+- ProcesadorConUmbral: Implementación para filtrado por umbral
+
+Versión: 2.0.0 (actualizada para OCP)
 Autor: Victor Valotto
 """
 
-from .procesador import Procesador, ProcesadorUmbral
+from .procesador import BaseProcesador, ProcesadorAmplificador, ProcesadorConUmbral
 
-__version__ = "1.0.0"
+__version__ = "2.0.0"
 __author__ = "Victor Valotto"
-__all__ = ['Procesador', 'ProcesadorUmbral']
+__all__ = [
+    'BaseProcesador',
+    'ProcesadorAmplificador',
+    'ProcesadorConUmbral'
+]

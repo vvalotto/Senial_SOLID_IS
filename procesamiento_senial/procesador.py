@@ -1,102 +1,89 @@
 """
-Define las clases procesadoras de señales
-Demostración de OCP "técnico" con problemas de dependencias
+Para OCP
+Se refactoriza la clase de manera de extender otros tipos de
+funciones de procesmiento de datos sin que impacte en los anteriores programas
+o que cambiando solo las clases de alto nivel que pueda "armar" la solucion
 """
+from abc import ABCMeta, abstractmethod
 from dominio_senial.senial import *
 
 
-class Procesador(object):
+class BaseProcesador(metaclass=ABCMeta):
     """
-    Clase ORIGINAL - Procesador de amplificación
-
-    ✅ CUMPLE OCP: Esta clase NO fue modificada para agregar nueva funcionalidad
-    Mantiene su responsabilidad original: amplificar señales por factor 2x
+    Clase Abstracta Procesador
     """
     def __init__(self):
         """
-        Constructor: Inicializa la clase procesadora original
+        Se inicializa con la senial que se va a procesar
         """
         self._senial_procesada = Senial()
-        return
 
-    def procesar_senial(self, senial):
+    @abstractmethod
+    def procesar(self, senial):
         """
-        Método ORIGINAL que realiza amplificación de la señal
-
-        ✅ SIN MODIFICACIONES: Mantiene funcionalidad original intacta
-        Siempre aplica factor de amplificación 2x (comportamiento original)
-
-        :param senial: Señal a procesar (amplificar por 2x)
-        :return: None (modifica estado interno)
+        Metodo abstracto que se implementara para cada tipo de procesamiento
         """
-        print("Procesando amplificación (factor 2x)...")
-        self._amplificacion = 2.0  # Factor fijo original
-        self._senial_procesada._valores = list(map(self.funcion_doble, senial._valores))
-        return
+        pass
 
     def obtener_senial_procesada(self):
         """
         Devuelve la señal procesada
-        :return: Objeto Senial con valores amplificados
         """
         return self._senial_procesada
 
-    def funcion_doble(self, valor):
+
+class ProcesadorAmplificador(BaseProcesador):
+    """
+    Clase Procesador Amplificador
+    """
+    def __init__(self, amplificacion):
         """
-        Función ORIGINAL que retorna el doble del valor de entrada
+        Sobreescribe el constructor de la clase abstracta para inicializar el valor de amplificacion
+        :param amplificacion: Factor de amplificación a aplicar
+        """
+        super().__init__()
+        self._amplificacion = amplificacion
+
+    def procesar(self, senial):
+        """
+        Implementa el procesamiento de amplificar cada valor de senial
+        :param senial: Señal a procesar
+        """
+        print(f"Procesando amplificación (factor {self._amplificacion}x)...")
+        self._senial_procesada._valores = list(map(self._amplificar, senial._valores))
+
+    def _amplificar(self, valor):
+        """
+        Función que amplifica un valor por el factor establecido
         :param valor: Valor a amplificar
-        :return: Valor amplificado por el factor
+        :return: Valor amplificado
         """
         return valor * self._amplificacion
 
-
-class ProcesadorUmbral(object):
+class ProcesadorConUmbral(BaseProcesador):
     """
-    Clase NUEVA - Procesador por umbral
-
-    ✅ EXTENSIÓN SIN MODIFICACIÓN: Nueva clase que agrega funcionalidad
-    sin tocar el código original del Procesador
-
-    ⚠️ PROBLEMA: Crea inconsistencias de interfaz y dependencias problemáticas
+    Clase Procesador con Umbral
     """
     def __init__(self, umbral):
         """
-        Constructor: Inicializa procesador con valor de umbral
-
-        ⚠️ INTERFAZ INCONSISTENTE: Constructor diferente al Procesador original
-
+        Sobreescribe el constructor de la clase abstracta para inicializar el umbral
         :param umbral: Valor del umbral para filtrado
         """
-        self._senial_procesada = Senial()
+        super().__init__()
         self._umbral = umbral
-        return
 
-    def procesar_senial(self, senial):
+    def procesar(self, senial):
         """
-        Método que realiza filtrado por umbral
-
-        ⚠️ PROBLEMA DE DISEÑO: Misma interfaz externa pero semántica diferente
-        - Procesador: amplifica siempre por 2x
-        - ProcesadorUmbral: filtra por umbral configurado en constructor
-
-        :param senial: Señal a procesar (filtrar por umbral)
-        :return: None (modifica estado interno)
+        Implementa el procesamiento de la señal con filtrado por umbral
+        :param senial: Señal a procesar
         """
         print(f"Procesando filtro por umbral ({self._umbral})...")
-        self._senial_procesada._valores = list(map(self.funcion_umbral, senial._valores))
-        return
+        self._senial_procesada._valores = list(map(self._funcion_umbral, senial._valores))
 
-    def obtener_senial_procesada(self):
-        """
-        Devuelve la señal procesada
-        :return: Objeto Senial con valores filtrados
-        """
-        return self._senial_procesada
-
-    def funcion_umbral(self, valor):
+    def _funcion_umbral(self, valor):
         """
         Función que filtra valores según el umbral establecido
         :param valor: Valor a evaluar
-        :return: Valor original si < umbral, 0 en caso contrario
+        :return: Valor original si es menor al umbral, 0 en caso contrario
         """
         return valor if valor < self._umbral else 0
