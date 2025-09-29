@@ -11,8 +11,8 @@ Versión: 1.0.0
 Autor: Victor Valotto
 """
 
-from .senial import Senial
+from .senial import Senial, SenialPila, SenialCola
 
 __version__ = "1.0.0"
 __author__ = "Victor Valotto"
-__all__ = ['Senial']
+__all__ = ['Senial','SenialPila','SenialCola']

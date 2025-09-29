@@ -53,7 +53,7 @@ class BaseProcesador(metaclass=ABCMeta):
         """
         Se inicializa con la senial que se va a procesar
         """
-        self._senial_procesada = Senial()
+        self._senial = Senial()
 
     @abstractmethod
     def procesar(self, senial):
@@ -65,7 +65,7 @@ class BaseProcesador(metaclass=ABCMeta):
         """
         Devuelve la señal procesada
         """
-        return self._senial_procesada
+        return self._senial
 
 
 class ProcesadorAmplificador(BaseProcesador):
@@ -82,7 +82,7 @@ class ProcesadorAmplificador(BaseProcesador):
 
     ✅ CUMPLE LSP:
     - Intercambiable con cualquier BaseProcesador
-    - Respeta el contrato: procesar() llena self._senial_procesada
+    - Respeta el contrato: procesar() llena self._senial
     - Comportamiento predecible: amplificación determinística
 
     🔄 EJEMPLO EXTENSIÓN OCP:
@@ -103,7 +103,13 @@ class ProcesadorAmplificador(BaseProcesador):
         :param senial: Señal a procesar
         """
         print(f"Procesando amplificación (factor {self._amplificacion}x)...")
-        self._senial_procesada._valores = list(map(self._amplificar, senial._valores))
+
+        # 🔄 TRANSFERENCIA CORRECTA: Usar métodos públicos para compatibilidad LSP
+        # Procesar cada valor y agregarlo usando el método apropiado
+        for i in range(senial.obtener_tamanio()):
+            valor_original = senial.obtener_valor(i)
+            valor_amplificado = self._amplificar(valor_original)
+            self._senial.poner_valor(valor_amplificado)
 
     def _amplificar(self, valor):
         """
@@ -152,7 +158,13 @@ class ProcesadorConUmbral(BaseProcesador):
         :param senial: Señal a procesar
         """
         print(f"Procesando filtro por umbral ({self._umbral})...")
-        self._senial_procesada._valores = list(map(self._funcion_umbral, senial._valores))
+
+        # 🔄 TRANSFERENCIA CORRECTA: Usar métodos públicos para compatibilidad LSP
+        # Procesar cada valor y agregarlo usando el método apropiado
+        for i in range(senial.obtener_tamanio()):
+            valor_original = senial.obtener_valor(i)
+            valor_filtrado = self._funcion_umbral(valor_original)
+            self._senial.poner_valor(valor_filtrado)
 
     def _funcion_umbral(self, valor):
         """

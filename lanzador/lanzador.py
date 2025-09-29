@@ -81,7 +81,7 @@ class Lanzador:
     @staticmethod
     def ejecutar():
         """
-        🚀 MÉTODO PRINCIPAL - Orquesta el flujo completo aplicando SRP puro.
+        🚀 METODO PRINCIPAL - Orquesta el flujo completo aplicando SRP puro.
 
         📖 RESPONSABILIDAD ÚNICA:
         Coordinar la interacción entre componentes sin tomar decisiones
@@ -99,7 +99,7 @@ class Lanzador:
         5. Mostrar resumen de principios aplicados
 
         ✅ SRP DEMOSTRADO:
-        Este método NO cambia cuando:
+        Este metodo NO cambia cuando:
         - Se agrega nuevo tipo de adquisidor
         - Se agrega nuevo tipo de procesador
         - Se cambia configuración de componentes
@@ -107,29 +107,61 @@ class Lanzador:
         try:
             # ✅ SRP PURO: Solo obtener componentes configurados (sin decidir cuáles)
             # 📚 Ver docs/IMPLEMETACION DE SRP EN PAQUETES.md - Delegación al Configurador
-            adquisidor = Configurador.crear_adquisidor()    # Decisión "de fábrica"
-            procesador = Configurador.crear_procesador()    # Sin consultar usuario
+            adquisidor = Configurador.crear_adquisidor()    # Con señal inyectada
+            procesador = Configurador.crear_procesador()    # Con señal inyectada
             visualizador = Configurador.crear_visualizador()  # Configuración centralizada
+
+            # 🔄 INFORMACIÓN DIAGNÓSTICA: Verificar tipo de señal inyectado
+            # Usamos métodos de acceso para respetar encapsulación
+            senial_adquisidor = adquisidor.obtener_senial_adquirida()
+            senial_procesador = procesador.obtener_senial_procesada()
+            tipo_senial_adquisidor = type(senial_adquisidor).__name__
+            tipo_senial_procesador = type(senial_procesador).__name__
 
             Lanzador.limpiar_pantalla()
             print("=== DEMOSTRACIÓN SRP PURO - PROCESAMIENTO DE SEÑALES v5.0 ===")
             print("Lanzador con responsabilidad única: ORQUESTACIÓN")
-            print("Configurador con responsabilidad única: CREACIÓN")
+            print("Configurador con responsabilidad única: CREACIÓN + INYECCIÓN")
+            print()
+            print("🔄 INYECCIÓN DE DEPENDENCIAS INDEPENDIENTE:")
+            print(f"   • Adquisidor configurado con señal: {tipo_senial_adquisidor}")
+            print(f"   • Procesador configurado con señal: {tipo_senial_procesador}")
+
+            # 🧪 ANÁLISIS DE CONFIGURACIÓN (experimentos LSP)
+            if tipo_senial_adquisidor != tipo_senial_procesador:
+                print("   🧪 CONFIGURACIÓN MIXTA detectada:")
+                print(f"      - Adquisición: {tipo_senial_adquisidor}")
+                print(f"      - Procesamiento: {tipo_senial_procesador}")
+                print("   🎓 Experimento LSP avanzado: Tipos diferentes por fase")
+            else:
+                print(f"   ✅ Configuración homogénea: {tipo_senial_adquisidor} en todo el sistema")
             print()
 
-            # ✅ ORQUESTACIÓN: Paso 1 - Adquisición
+            # ✅ ORQUESTACIÓN: Paso 1 - Adquisición en señal configurada
             print("📡 PASO 1 - ADQUISICIÓN DE LA SEÑAL")
             print("-" * 40)
+            print(f"📋 Señal inyectada en adquisidor: {tipo_senial_adquisidor}")
+
+            # 🔄 POLIMORFISMO: El adquisidor trabaja con señal inyectada automáticamente
+            # Sin que el lanzador conozca el tipo específico - SRP puro
             adquisidor.leer_senial()
             senial_original = adquisidor.obtener_senial_adquirida()
+
             print(f"✅ Señal adquirida con {senial_original.obtener_tamanio()} muestras")
+            print(f"📊 Estructura confirmada: {type(senial_original).__name__}")
+
+            # 🧪 DIAGNÓSTICO LSP: Verificar comportamiento específico si existe
+            if hasattr(senial_original, 'sacar_valor'):
+                print(f"🔍 Método específico detectado: sacar_valor() disponible")
+                print(f"⚠️ Nota: Esto puede indicar violación LSP (método no polimórfico)")
+
             Lanzador.tecla()
 
             # ✅ ORQUESTACIÓN: Paso 2 - Procesamiento
             print(f"\n⚙️  PASO 2 - PROCESAMIENTO")
             print("-" * 40)
             print(f"✅ Procesador configurado: {type(procesador).__name__}")
-            print("✅ Configuración decidida por el Configurador (SRP)")
+            print(f"📋 Señal inyectada en procesador: {tipo_senial_procesador}")
 
             # ✅ USO DIRECTO: Sin wrapper innecesario - Polimorfismo puro
             # 📚 Ver docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md - Polimorfismo
@@ -137,12 +169,25 @@ class Lanzador:
             senial_procesada = procesador.obtener_senial_procesada()
 
             print("✅ Procesamiento completado")
+            print(f"📊 Señal procesada mantiene estructura: {type(senial_procesada).__name__}")
+
+            # 🧪 VERIFICACIÓN DE CONSISTENCIA: Tipos deben coincidir
+            if type(senial_original).__name__ != type(senial_procesada).__name__:
+                print("⚠️ INCONSISTENCIA DETECTADA: Tipos de señal diferentes")
+                print(f"   Original: {type(senial_original).__name__}")
+                print(f"   Procesada: {type(senial_procesada).__name__}")
+                print("🎓 Esto puede indicar problemas en la implementación LSP")
+            else:
+                print(f"✅ Consistencia mantenida: {type(senial_original).__name__}")
+
             Lanzador.tecla()
 
             # ✅ ORQUESTACIÓN: Paso 3 - Visualización
             print("\n📊 PASO 3 - VISUALIZACIÓN DE RESULTADOS")
             print("-" * 40)
             print("Comparación entre señal original y procesada:")
+            print(f"📋 Ambas señales con estructura: {type(senial_original).__name__}")
+            print(f"🔄 Inyectadas automáticamente por el Configurador")
             print()
 
             print("🔹 SEÑAL ORIGINAL:")
@@ -151,6 +196,38 @@ class Lanzador:
 
             print("🔸 SEÑAL PROCESADA:")
             visualizador.mostrar_datos(senial_procesada)
+
+            # 🧪 DEMOSTRACIÓN EXPERIMENTAL LSP (si hay métodos específicos)
+            if hasattr(senial_original, 'sacar_valor') and hasattr(senial_procesada, 'sacar_valor'):
+                print("\n🧪 DEMOSTRACIÓN EXPERIMENTAL - MÉTODOS ESPECÍFICOS:")
+                print("⚠️ Nota: Estos métodos NO están en la clase base Senial")
+                print("🎓 Su uso indica potencial violación de LSP")
+
+                # Determinar tipo de comportamiento esperado
+                if 'Pila' in type(senial_original).__name__:
+                    print("📋 Comportamiento esperado: LIFO (Last In, First Out)")
+                elif 'Cola' in type(senial_original).__name__:
+                    print("📋 Comportamiento esperado: FIFO (First In, First Out)")
+
+                try:
+                    if senial_original.obtener_tamanio() > 0:
+                        valor_original = senial_original.sacar_valor()
+                        print(f"🔹 Valor extraído de señal original: {valor_original}")
+
+                    if senial_procesada.obtener_tamanio() > 0:
+                        valor_procesado = senial_procesada.sacar_valor()
+                        print(f"🔸 Valor extraído de señal procesada: {valor_procesado}")
+
+                        # Comparar comportamientos si hay datos suficientes
+                        if senial_original.obtener_tamanio() > 0 and 'valor_original' in locals():
+                            if valor_original == valor_procesado:
+                                print("✅ Comportamiento consistente entre señales")
+                            else:
+                                print("⚠️ Comportamiento diferente - posible efecto del procesamiento")
+
+                except Exception as e:
+                    print(f"❌ Error al usar método específico: {e}")
+                    print("🎓 Esto demuestra violación LSP: método no funciona polimórficamente")
 
             # ✅ RESULTADO: SRP aplicado correctamente
             print(f"\n🎉 DEMOSTRACIÓN SRP PURO COMPLETADA")
@@ -165,14 +242,37 @@ class Lanzador:
             print("🏗️  PRINCIPIOS SOLID DEMOSTRADOS:")
             print("   ✅ SRP: Una responsabilidad por clase/paquete")
             print("   ✅ OCP: Procesadores extensibles sin modificar lanzador")
-            print("   ✅ LSP: Cualquier procesador funciona polimórficamente")
+            print("   🔄 LSP: Tipos de señal en evaluación (posibles violaciones)")
             print("   ✅ Preparado para DIP: Configurador listo para inyección")
             print()
             print("📚 LECCIÓN APRENDIDA:")
             print("   🎯 SEPARACIÓN TOTAL de responsabilidades")
             print("   🎯 CONFIGURACIÓN CENTRALIZADA sin input del usuario")
             print("   🎯 ORQUESTACIÓN PURA sin lógica de negocio")
+            print("   🎯 TIPOS DE SEÑAL intercambiables (sujeto a LSP)")
             print("="*60)
+
+            print("\n🧪 PARA EXPERIMENTAR CON LSP:")
+            print("   EXPERIMENTOS INDEPENDIENTES:")
+            print("   A) Modificar Configurador.crear_senial_adquisidor():")
+            print("      • crear_senial_lista()  ← Comportamiento baseline (ACTUAL)")
+            print("      • crear_senial_pila()   ← Adquisición con LIFO")
+            print("      • crear_senial_cola()   ← Adquisición con FIFO")
+            print()
+            print("   B) Modificar Configurador.crear_senial_procesador():")
+            print("      • crear_senial_lista()  ← Procesamiento baseline (ACTUAL)")
+            print("      • crear_senial_pila()   ← Procesamiento con LIFO")
+            print("      • crear_senial_cola()   ← Procesamiento con FIFO")
+            print()
+            print("   🎯 EXPERIMENTOS MIXTOS AVANZADOS:")
+            print("      • Adquisidor=Lista + Procesador=Pila  ← Transferencia problemática")
+            print("      • Adquisidor=Cola + Procesador=Lista  ← Inversión semántica")
+            print("      • Adquisidor=Pila + Procesador=Cola   ← Semánticas opuestas")
+            print()
+            print("📚 DOCUMENTACIÓN COMPLETA:")
+            print("   📄 docs/VIOLACIONES DE LSP EN TIPOS DE SEÑAL.md")
+            print("   📄 docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md")
+            print("   📄 docs/INCORPORACION DEL CONFIGURADOR CON FACTORY PATTERN.md")
 
         except KeyboardInterrupt:
             print("\n\n⚠️  Proceso interrumpido por el usuario")
