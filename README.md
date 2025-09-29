@@ -49,6 +49,13 @@ Este proyecto es un caso de estudio didáctico que demuestra la **evolución pro
 - **Desafío SRP**: Lanzador con múltiples responsabilidades
 - **Solución**: Configurador centralizado con decisiones "de fábrica"
 
+### 📚 Requerimiento 4: Manejo de Colecciones de Datos
+
+**Contexto**: Los valores que corresponden a la señal son manejado como una lista, los desarrolladores están viendo que se puede agregar el manejo de la colección de valores de la señal también como una pila y una cola, además de una lista.
+- **Desafío LSP**: Intercambiabilidad real entre diferentes implementaciones de colecciones
+- **Base para**: Demostrar violación de LSP y posterior solución con contratos robustos
+
+
 ## 🚀 Funcionalidades Implementadas
 
 ### 📡 Adquisición de Señales (OCP Aplicado)
