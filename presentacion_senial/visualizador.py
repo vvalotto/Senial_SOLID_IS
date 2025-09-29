@@ -20,7 +20,6 @@ class Visualizador:
         """
         Inicializa el visualizador de señales.
         """
-        pass
 
     def mostrar_datos(self, senial: Senial) -> None:
         """

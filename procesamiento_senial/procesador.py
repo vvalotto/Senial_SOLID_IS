@@ -5,7 +5,7 @@ funciones de procesmiento de datos sin que impacte en los anteriores programas
 o que cambiando solo las clases de alto nivel que pueda "armar" la solucion
 """
 from abc import ABCMeta, abstractmethod
-from dominio_senial.senial import *
+from dominio_senial.senial import Senial
 
 
 class BaseProcesador(metaclass=ABCMeta):
@@ -23,7 +23,6 @@ class BaseProcesador(metaclass=ABCMeta):
         """
         Metodo abstracto que se implementara para cada tipo de procesamiento
         """
-        pass
 
     def obtener_senial_procesada(self):
         """

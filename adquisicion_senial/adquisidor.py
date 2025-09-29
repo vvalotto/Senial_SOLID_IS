@@ -24,7 +24,8 @@ class Adquisidor:
         self._senial = Senial()
         self._nro_muestra = numero_muestras
 
-    def _leer_dato_entrada(self):
+    @staticmethod
+    def _leer_dato_entrada():
         """
         Solicita un valor numérico por consola con validación.
 
