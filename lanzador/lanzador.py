@@ -2,12 +2,25 @@
 """
 Lanzador principal del sistema que demuestra SRP PURO aplicado.
 
-Responsabilidad única del Lanzador: ORQUESTACIÓN del flujo de procesamiento.
+Este módulo implementa el patrón COORDINADOR que aplica SRP estrictamente,
+separando ORQUESTACIÓN de CONFIGURACIÓN completamente.
+
+📚 DOCUMENTACIÓN TÉCNICA:
+- SRP aplicado: docs/IMPLEMETACION DE SRP EN PAQUETES.md
+- OCP mantenido: docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md
+
+🎯 RESPONSABILIDAD ÚNICA: ORQUESTACIÓN
+- SOLO coordina la ejecución entre componentes ya configurados
 - NO toma decisiones de configuración (delegadas al Configurador)
 - NO interactúa con usuario para configuración
-- SOLO coordina la ejecución entre componentes configurados
+- NO contiene lógica de negocio
 
-Versión: 5.0 - SRP Puro
+🏗️ PATRÓN IMPLEMENTADO:
+Coordinador/Orquestador que usa Factory Centralizado para obtener
+componentes pre-configurados y ejecuta el flujo de procesamiento.
+
+Versión: 5.0 - SRP Puro con responsabilidades cristalinas
+Autor: Victor Valotto
 """
 import platform
 import os
@@ -18,12 +31,28 @@ class Lanzador:
     """
     Lanzador que aplica SRP PURO - Responsabilidad única: ORQUESTACIÓN
 
-    El Lanzador coordina la ejecución del flujo de procesamiento sin:
-    - Tomar decisiones de configuración
-    - Interactuar con el usuario para configuración
-    - Conocer implementaciones específicas
+    📖 PATRÓN COORDINADOR:
+    El Lanzador coordina la ejecución del flujo de procesamiento aplicando
+    separación estricta de responsabilidades.
 
-    Solo orquesta: Adquisición → Procesamiento → Visualización
+    📚 REFERENCIAS TEÓRICAS:
+    - docs/IMPLEMETACION DE SRP EN PAQUETES.md: Evolución de responsabilidades
+    - docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md: Uso de polimorfismo
+
+    ✅ LO QUE SÍ HACE (SRP):
+    - Orquestar flujo: Adquisición → Procesamiento → Visualización
+    - Coordinar interacción entre componentes
+    - Mostrar progreso y resultados del procesamiento
+
+    ❌ LO QUE NO HACE (SRP):
+    - Decidir QUÉ adquisidor usar (→ Configurador)
+    - Decidir QUÉ procesador usar (→ Configurador)
+    - Contener lógica de negocio (→ Componentes específicos)
+    - Interactuar con usuario para configuración (→ Configurador)
+
+    🔄 BENEFICIO SRP:
+    Cambios en configuración NO afectan al Lanzador.
+    Cambios en lógica de procesamiento NO afectan al Lanzador.
     """
 
     @staticmethod
@@ -52,16 +81,35 @@ class Lanzador:
     @staticmethod
     def ejecutar():
         """
-        Orquesta el flujo de procesamiento de señales aplicando SRP puro.
+        🚀 MÉTODO PRINCIPAL - Orquesta el flujo completo aplicando SRP puro.
 
-        Responsabilidad única del Lanzador: Coordinar la interacción entre componentes
-        sin tomar decisiones de configuración (delegadas al Configurador).
+        📖 RESPONSABILIDAD ÚNICA:
+        Coordinar la interacción entre componentes sin tomar decisiones
+        de configuración (delegadas al Configurador).
+
+        📚 REFERENCIA ARQUITECTÓNICA:
+        docs/IMPLEMETACION DE SRP EN PAQUETES.md - Sección "Factory Centralizado"
+        Demuestra separación total entre orquestación y configuración.
+
+        🔄 FLUJO ORQUESTADO:
+        1. Obtener componentes configurados (SIN decidir cuáles)
+        2. Ejecutar adquisición de datos
+        3. Ejecutar procesamiento de señal
+        4. Ejecutar visualización de resultados
+        5. Mostrar resumen de principios aplicados
+
+        ✅ SRP DEMOSTRADO:
+        Este método NO cambia cuando:
+        - Se agrega nuevo tipo de adquisidor
+        - Se agrega nuevo tipo de procesador
+        - Se cambia configuración de componentes
         """
         try:
             # ✅ SRP PURO: Solo obtener componentes configurados (sin decidir cuáles)
-            adquisidor = Configurador.crear_adquisidor()
-            procesador = Configurador.crear_procesador()  # Decisión "de fábrica"
-            visualizador = Configurador.crear_visualizador()
+            # 📚 Ver docs/IMPLEMETACION DE SRP EN PAQUETES.md - Delegación al Configurador
+            adquisidor = Configurador.crear_adquisidor()    # Decisión "de fábrica"
+            procesador = Configurador.crear_procesador()    # Sin consultar usuario
+            visualizador = Configurador.crear_visualizador()  # Configuración centralizada
 
             Lanzador.limpiar_pantalla()
             print("=== DEMOSTRACIÓN SRP PURO - PROCESAMIENTO DE SEÑALES v5.0 ===")
@@ -83,8 +131,9 @@ class Lanzador:
             print(f"✅ Procesador configurado: {type(procesador).__name__}")
             print("✅ Configuración decidida por el Configurador (SRP)")
 
-            # ✅ USO DIRECTO: Sin wrapper innecesario
-            procesador.procesar(senial_original)
+            # ✅ USO DIRECTO: Sin wrapper innecesario - Polimorfismo puro
+            # 📚 Ver docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md - Polimorfismo
+            procesador.procesar(senial_original)  # Funciona con cualquier procesador
             senial_procesada = procesador.obtener_senial_procesada()
 
             print("✅ Procesamiento completado")

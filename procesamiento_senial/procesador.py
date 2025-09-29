@@ -1,8 +1,25 @@
 """
-Para OCP
-Se refactoriza la clase de manera de extender otros tipos de
-funciones de procesmiento de datos sin que impacte en los anteriores programas
-o que cambiando solo las clases de alto nivel que pueda "armar" la solucion
+Paquete procesamiento_senial - Aplicación completa de OCP con Strategy Pattern
+
+Este módulo demuestra la implementación correcta del Open/Closed Principle
+refactorizando desde violación hacia extensibilidad sin modificación.
+
+📚 DOCUMENTACIÓN TÉCNICA:
+- OCP completo: docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md
+- Strategy + Factory Pattern: Abstracciones + polimorfismo + creación extensible
+
+🎯 EVOLUCIÓN OCP DEMOSTRADA:
+ANTES: Modificar clase existente para cada nuevo tipo (violación OCP)
+DESPUÉS: Solo agregar nueva clase que herede de BaseProcesador (cumple OCP)
+
+🏗️ PATRÓN STRATEGY IMPLEMENTADO:
+- BaseProcesador: Abstracción que define contrato común
+- ProcesadorAmplificador: Estrategia concreta para amplificación
+- ProcesadorConUmbral: Estrategia concreta para filtrado por umbral
+- Futuras extensiones: FFT, Wavelets, Filtros digitales, etc.
+
+Versión: 2.0.0 - OCP con Strategy Pattern completo
+Autor: Victor Valotto
 """
 from abc import ABCMeta, abstractmethod
 from dominio_senial.senial import Senial
@@ -10,7 +27,27 @@ from dominio_senial.senial import Senial
 
 class BaseProcesador(metaclass=ABCMeta):
     """
-    Clase Abstracta Procesador
+    🏗️ ABSTRACCIÓN BASE - Strategy Pattern para procesamiento extensible.
+
+    📚 REFERENCIA OCP:
+    docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md - "Factory Pattern + Polimorfismo"
+    Demuestra cómo las abstracciones permiten extensibilidad infinita sin modificación.
+
+    🎯 CONTRATO COMÚN:
+    Define la interfaz estable que TODAS las implementaciones deben cumplir,
+    permitiendo intercambiabilidad polimórfica total (LSP).
+
+    ✅ CUMPLE OCP PERFECTAMENTE:
+    - Abierto para extensión: Infinitas implementaciones posibles
+    - Cerrado para modificación: Esta abstracción NUNCA cambia
+    - Polimorfismo: Cliente usa BaseProcesador, ignora implementaciones específicas
+
+    🔄 EXTENSIBILIDAD SIN LÍMITES:
+    Agregar ProcesadorFFT, ProcesadorWavelet, ProcesadorFiltroDigital NO requiere:
+    - Modificar esta clase abstracta
+    - Modificar código que usa BaseProcesador
+    - Modificar Factory methods existentes
+    - Modificar tests polimórficos
     """
     def __init__(self):
         """
@@ -33,7 +70,24 @@ class BaseProcesador(metaclass=ABCMeta):
 
 class ProcesadorAmplificador(BaseProcesador):
     """
-    Clase Procesador Amplificador
+    🔊 ESTRATEGIA CONCRETA - Amplificación con factor configurable.
+
+    📚 REFERENCIA OCP:
+    docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md - "Extensiones sin Modificación"
+    Primera implementación que demuestra extensión del contrato base.
+
+    🎯 RESPONSABILIDAD ESPECÍFICA (SRP):
+    Amplificar cada valor de la señal por un factor configurable,
+    aplicando transformación matemática simple: valor_nuevo = valor_original * factor.
+
+    ✅ CUMPLE LSP:
+    - Intercambiable con cualquier BaseProcesador
+    - Respeta el contrato: procesar() llena self._senial_procesada
+    - Comportamiento predecible: amplificación determinística
+
+    🔄 EJEMPLO EXTENSIÓN OCP:
+    Esta clase se agregó SIN modificar BaseProcesador ni código cliente.
+    Futuras clases (ProcesadorConUmbral, etc.) siguen el mismo patrón.
     """
     def __init__(self, amplificacion):
         """
@@ -61,7 +115,28 @@ class ProcesadorAmplificador(BaseProcesador):
 
 class ProcesadorConUmbral(BaseProcesador):
     """
-    Clase Procesador con Umbral
+    🚧 ESTRATEGIA CONCRETA - Filtrado por umbral configurable.
+
+    📚 REFERENCIA OCP:
+    docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md - "Nuevos Tipos sin Modificación"
+    Segunda implementación que demuestra OCP: extensión sin tocar código existente.
+
+    🎯 RESPONSABILIDAD ESPECÍFICA (SRP):
+    Filtrar valores de la señal por umbral configurable:
+    - Valores < umbral: se mantienen
+    - Valores >= umbral: se ponen en 0
+
+    ✅ CUMPLE LSP:
+    - Intercambiable con ProcesadorAmplificador y cualquier BaseProcesador
+    - Respeta el contrato abstracto completamente
+    - Comportamiento consistente: filtrado determinístico
+
+    🔄 BENEFICIO OCP DEMOSTRADO:
+    Esta clase se agregó DESPUÉS de ProcesadorAmplificador sin:
+    - Modificar BaseProcesador
+    - Modificar ProcesadorAmplificador
+    - Modificar código que usa procesadores (Lanzador, Configurador)
+    - Romper tests existentes
     """
     def __init__(self, umbral):
         """

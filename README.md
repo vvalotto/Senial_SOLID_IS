@@ -1,79 +1,211 @@
-# Principios SOLID - Caso de Estudio
+# Principios SOLID - Caso de Estudio Avanzado
 
-Este proyecto es un caso de estudio didáctico y académico que demuestra la implementación de los principios SOLID en Python.
+**Versión**: 5.0 - SRP Puro + OCP Completo + Factory Centralizado
+**Autor**: Victor Valotto
+**Objetivo**: Demostración práctica y didáctica de principios SOLID aplicados a arquitectura de software
 
-## Principios SOLID
+Este proyecto es un caso de estudio didáctico que demuestra la **evolución progresiva** de un sistema de procesamiento de señales digitales aplicando principios SOLID, desde violaciones iniciales hasta arquitectura limpia y extensible.
 
-- **S** - Single Responsibility Principle (Principio de Responsabilidad Única)
-- **O** - Open/Closed Principle (Principio Abierto/Cerrado)
-- **L** - Liskov Substitution Principle (Principio de Sustitución de Liskov)
-- **I** - Interface Segregation Principle (Principio de Segregación de Interfaces)
-- **D** - Dependency Inversion Principle (Principio de Inversión de Dependencias)
+## 🎯 Estado Actual del Proyecto
 
-## Caso de Estudio
+### ✅ Principios SOLID Implementados
 
-### Requerimiento 1: Sistema de Procesamiento de Señales
+- **✅ S** - **Single Responsibility Principle**: Aplicado a nivel de clases Y paquetes
+- **✅ O** - **Open/Closed Principle**: Extensibilidad sin modificación (procesamiento + adquisición)
+- **🔄 L** - **Liskov Substitution Principle**: Base sólida para intercambiabilidad
+- **📋 I** - **Interface Segregation Principle**: Preparado para interfaces específicas
+- **🔄 D** - **Dependency Inversion Principle**: Factory centralizado como base para DIP
 
-El sistema debe implementar un procesador de señales digitales que permita:
+### 🏗️ Arquitectura Actual
 
-1. **Captura de señales**: Simular el ingreso de una señal digital mediante la entrada de valores numéricos por consola, donde cada valor representa una muestra de la señal.
+```
+📦 Senial_SOLID_IS/
+├── 🏠 dominio_senial/          # Entidades del dominio
+├── 📡 adquisicion_senial/      # Adquisición (OCP aplicado)
+├── ⚙️  procesamiento_senial/    # Procesamiento (OCP aplicado)
+├── 📊 presentacion_senial/     # Visualización
+├── 🏭 configurador/            # Factory centralizado (SRP)
+└── 🚀 lanzador/               # Orquestador (SRP puro)
+```
 
-2. **Procesamiento**: Procesar la señal capturada aplicando una amplificación con factor de 2x a cada muestra de la señal original.
+## 📚 Evolución del Caso de Estudio
 
-3. **Visualización**: Mostrar tanto la señal original como la señal amplificada de manera clara y organizada.
+### 🎯 Requerimiento 1: Sistema Base de Procesamiento
 
-### Requerimiento 2: Extensión con Filtrado por Umbral
+**Objetivo**: Implementar procesador de señales digitales básico
+- **Adquisición**: Captura de valores numéricos (consola/archivo)
+- **Procesamiento**: Amplificación con factor configurable
+- **Visualización**: Mostrar señal original y procesada
 
-**Contexto**: Es necesario agregar un nuevo tipo de procesamiento ya que hay clientes que necesitan valores de la señal por debajo de un umbral específico. Los valores del umbral son entregados mediante archivo de configuración.
+### 🔄 Requerimiento 2: Extensión con Nuevos Tipos
 
-**Objetivos**:
+**Contexto**: Agregar filtrado por umbral sin romper funcionalidad existente
+- **Desafío OCP**: Extensión sin modificación de código existente
+- **Solución**: Abstracciones + polimorfismo + Factory Pattern
 
-1. **Mantener funcionalidad existente**: El sistema debe conservar la capacidad de amplificación (factor 2x) sin modificaciones.
+### 🏭 Requerimiento 3: Factory Centralizado
 
-2. **Agregar filtrado por umbral**: Implementar procesamiento que filtre valores por debajo de un umbral configurable.
+**Contexto**: Separar responsabilidades de creación y orquestación
+- **Desafío SRP**: Lanzador con múltiples responsabilidades
+- **Solución**: Configurador centralizado con decisiones "de fábrica"
 
-3. **Lectura de configuración**: Cargar parámetros de umbral desde archivos externos.
+## 🚀 Funcionalidades Implementadas
 
-4. **Compatibilidad**: Es una nueva versión del sistema que debe mantener retrocompatibilidad.
+### 📡 Adquisición de Señales (OCP Aplicado)
+- **`AdquisidorConsola`**: Entrada interactiva desde teclado
+- **`AdquisidorArchivo`**: Lectura desde archivos de datos
+- **Extensible**: Fácil agregar sensores, APIs, bases de datos
 
-**Evolución del caso de estudio**:
-- **Fase 1**: Implementación que **viola OCP** - modificando código existente
-- **Fase 2**: Refactorización que **cumple OCP** - extensión sin modificación
+### ⚙️ Procesamiento de Señales (OCP Aplicado)
+- **`ProcesadorAmplificador`**: Amplificación con factor configurable
+- **`ProcesadorConUmbral`**: Filtrado por umbral
+- **Extensible**: Fácil agregar FFT, filtros digitales, wavelets
+
+### 🏭 Configuración Centralizada (SRP Aplicado)
+- **Decisiones "de fábrica"**: Sin input del usuario
+- **Configuración programática**: Valores definidos en código
+- **Preparado para DIP**: Base para configuración externa
+
+### 🚀 Orquestación Pura (SRP Aplicado)
+- **Responsabilidad única**: Solo coordinar flujo
+- **Sin decisiones**: Delegadas al Configurador
+- **Sin interacción**: No maneja input del usuario
 
 
-## Metodología Didáctica
+## 📖 Uso del Sistema
 
-### Enfoque Progresivo de Implementación
-
-**Objetivo**: Demostrar la aplicación progresiva de los principios SOLID, mostrando cómo cada principio mejora la estructura, mantenibilidad y extensibilidad del código.
-
-**Estrategia**:
-
-1. **Requerimiento 1 (SRP)**:
-   - Implementación inicial con violación de SRP
-   - Refactorización aplicando Single Responsibility Principle
-
-2. **Requerimiento 2 (OCP)**:
-   - Implementación que viola Open/Closed Principle
-   - Refactorización aplicando extensibilidad sin modificación
-
-3. **Evolución continua**: Aplicación de LSP, ISP y DIP según se agreguen nuevos requerimientos
-
-### Beneficios Educativos
-
-- **Contraste antes/después**: Comparación directa entre código que viola y cumple principios SOLID
-- **Casos de uso reales**: Escenarios basados en necesidades empresariales comunes
-- **Evolución arquitectónica**: Transformación gradual hacia Clean Architecture
-- **Métricas de calidad**: Medición objetiva de mejoras en mantenibilidad y extensibilidad
-
-## Instalación
+### 🚀 Ejecución Principal
 
 ```bash
+# Ejecutar el sistema completo
+python -m lanzador.lanzador
+
+# O directamente
+cd lanzador
+python lanzador.py
+```
+
+### 📁 Configuración de Datos
+
+El sistema está configurado para leer datos desde `senial.txt`:
+```
+# Ejemplo de archivo senial.txt
+1.5
+2.8
+3.2
+4.1
+5.7
+```
+
+### ⚙️ Configuración del Sistema
+
+```python
+# El Configurador define la configuración "de fábrica"
+from configurador import Configurador
+
+# Configuración actual
+adquisidor = Configurador.crear_adquisidor()        # AdquisidorArchivo('senial.txt')
+procesador = Configurador.crear_procesador()        # ProcesadorAmplificador(4.0)
+visualizador = Configurador.crear_visualizador()    # Visualizador()
+```
+
+## 🏗️ Arquitectura y Patrones
+
+### 📦 Paquetes Independientes (SRP a Nivel de Paquetes)
+
+```python
+# Cada paquete tiene responsabilidad única y puede instalarse independientemente
+pip install dominio-senial           # Solo entidades
+pip install adquisicion-senial       # Solo adquisición
+pip install procesamiento-senial     # Solo procesamiento
+pip install presentacion-senial      # Solo presentación
+pip install configurador            # Solo factory centralizado
+pip install lanzador               # Solo orquestación
+```
+
+### 🔄 Extensibilidad (OCP Demostrado)
+
+```python
+# Agregar nuevo procesador SIN modificar código existente
+class ProcesadorSuavizado(BaseProcesador):
+    def procesar(self, senial):
+        # Implementación específica
+        pass
+
+# Solo agregar al factory
+def crear_procesador_suavizado():
+    return ProcesadorSuavizado(ventana=3)
+```
+
+### 🔀 Intercambiabilidad (LSP Preparado)
+
+```python
+# Cualquier procesador funciona polimórficamente
+procesadores = [
+    ProcesadorAmplificador(2.0),
+    ProcesadorConUmbral(5.0),
+    # Futuros procesadores funcionarán automáticamente
+]
+
+for proc in procesadores:
+    proc.procesar(senial)  # Mismo interface, comportamiento específico
+```
+
+## 📚 Documentación Técnica
+
+### 📋 Documentos Disponibles
+
+- **`docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md`**: Guía completa del patrón OCP aplicado
+- **`docs/IMPLEMETACION DE SRP EN PAQUETES.md`**: Evolución de SRP a nivel de paquetes
+- **Cada paquete**: README.md específico con arquitectura y uso
+
+### 🧪 Testing
+
+```bash
+# Tests por paquete
+pytest dominio_senial/tests/
+pytest procesamiento_senial/tests/
+# ... otros paquetes
+
+# Tests de integración
+pytest lanzador/tests/
+```
+
+## 🎯 Valor Didáctico
+
+### ✅ Lo que se Demuestra
+
+1. **SRP Progresivo**: De clases → paquetes → responsabilidades cristalinas
+2. **OCP Práctico**: Extensibilidad real sin tocar código existente
+3. **Factory Centralizado**: Separación total de creación y uso
+4. **Polimorfismo**: Intercambiabilidad transparente
+5. **Arquitectura Limpia**: Preparación para principios avanzados
+
+### 🔄 Próximos Pasos
+
+- **LSP**: Contratos robustos y intercambiabilidad garantizada
+- **ISP**: Interfaces específicas por responsabilidad
+- **DIP**: Configuración externa e inyección de dependencias
+
+## 🛠️ Instalación y Configuración
+
+```bash
+# Clonar repositorio
+git clone <repository-url>
+cd Senial_SOLID_IS
+
+# Instalar dependencias
 pip install -r requirements.txt
+
+# Crear archivo de datos (ejemplo)
+echo -e "1.5\n2.8\n3.2\n4.1\n5.7" > senial.txt
+
+# Ejecutar
+python -m lanzador.lanzador
 ```
 
-## Ejecución de Tests
+---
 
-```bash
-pytest tests/
-```
+**📖 Proyecto Didáctico - Victor Valotto**
+**🎯 Objetivo**: Demostración práctica de principios SOLID aplicados progressivamente
+**🔄 Estado**: SRP + OCP implementados - Base sólida para LSP, ISP y DIP

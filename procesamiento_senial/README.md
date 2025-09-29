@@ -1,4 +1,4 @@
-# Procesamiento Señal - Algoritmos de Transformación
+quie# Procesamiento Señal - Algoritmos de Transformación
 
 Paquete especializado en el procesamiento y transformación de señales digitales.
 
