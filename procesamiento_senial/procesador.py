@@ -105,7 +105,7 @@ class ProcesadorAmplificador(BaseProcesador):
         print(f"Procesando amplificación (factor {self._amplificacion}x)...")
 
         # 🔄 TRANSFERENCIA CORRECTA: Usar métodos públicos para compatibilidad LSP
-        # Procesar cada valor y agregarlo usando el método apropiado
+        # Procesar cada valor y agregarlo usando el metodo apropiado
         for i in range(senial.obtener_tamanio()):
             valor_original = senial.obtener_valor(i)
             valor_amplificado = self._amplificar(valor_original)
@@ -114,9 +114,22 @@ class ProcesadorAmplificador(BaseProcesador):
     def _amplificar(self, valor):
         """
         Función que amplifica un valor por el factor establecido
-        :param valor: Valor a amplificar
-        :return: Valor amplificado
+
+        🛡️ CORRECCIÓN DEFENSIVA: Manejo de valores None
+        Esta validación es necesaria debido a violaciones LSP en SenialCola
+        que inicializa con [None] * tamanio, causando que obtener_valor()
+        devuelva None para posiciones no llenadas.
+
+        ⚠️ NOTA DIDÁCTICA: Esta corrección NO arregla el anti-patrón,
+        solo evita el crash para permitir la demostración educativa.
+
+        :param valor: Valor a amplificar (puede ser None debido a LSP violado)
+        :return: Valor amplificado o 0.0 si el valor es None
         """
+        if valor is None:
+            # 🛡️ Manejo defensivo: SenialCola puede devolver None
+            # Esto es consecuencia directa de violaciones LSP en el dominio
+            return 0.0
         return valor * self._amplificacion
 
 class ProcesadorConUmbral(BaseProcesador):
@@ -160,7 +173,7 @@ class ProcesadorConUmbral(BaseProcesador):
         print(f"Procesando filtro por umbral ({self._umbral})...")
 
         # 🔄 TRANSFERENCIA CORRECTA: Usar métodos públicos para compatibilidad LSP
-        # Procesar cada valor y agregarlo usando el método apropiado
+        # Procesar cada valor y agregarlo usando el metodo apropiado
         for i in range(senial.obtener_tamanio()):
             valor_original = senial.obtener_valor(i)
             valor_filtrado = self._funcion_umbral(valor_original)
@@ -169,7 +182,19 @@ class ProcesadorConUmbral(BaseProcesador):
     def _funcion_umbral(self, valor):
         """
         Función que filtra valores según el umbral establecido
-        :param valor: Valor a evaluar
+
+        🛡️ CORRECCIÓN DEFENSIVA: Manejo de valores None
+        Esta validación es necesaria debido a violaciones LSP en SenialCola
+        que puede devolver None desde obtener_valor().
+
+        ⚠️ NOTA DIDÁCTICA: Esta corrección NO arregla el anti-patrón,
+        solo evita comparaciones None < umbral que causan TypeError.
+
+        :param valor: Valor a evaluar (puede ser None debido a LSP violado)
         :return: Valor original si es menor al umbral, 0 en caso contrario
         """
+        if valor is None:
+            # 🛡️ Manejo defensivo: SenialCola puede devolver None
+            # Tratamos None como 0 para evitar TypeError en comparación
+            return 0
         return valor if valor < self._umbral else 0
