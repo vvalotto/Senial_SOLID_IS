@@ -17,13 +17,13 @@ para separar completamente las responsabilidades de CREACIÓN y ORQUESTACIÓN.
 Factory Centralizado con decisiones "de fábrica" - sin input del usuario,
 permitiendo que el Lanzador se enfoque SOLO en orquestación.
 
-Versión: 2.1.0 - SRP Puro con Factory Centralizado + Inyección de Señales
+Versión: 2.1.1 - SRP Puro con Factory Centralizado + Inyección de Señales
 Autor: Victor Valotto
 """
 from adquisicion_senial import AdquisidorConsola, AdquisidorArchivo
 from procesamiento_senial import ProcesadorAmplificador, ProcesadorConUmbral
 from presentacion_senial import Visualizador
-from dominio_senial import Senial, SenialPila, SenialCola
+from dominio_senial import SenialLista, SenialPila, SenialCola
 
 
 class Configurador:
@@ -198,10 +198,12 @@ class Configurador:
         Señal básica con acceso secuencial por índice y tamaño por defecto.
         Comportamiento: Lista dinámica estándar.
 
-        :return: Instancia configurada de Senial (comportamiento lista)
-        :rtype: Senial
+        ✅ LSP APLICADO: SenialLista cumple contrato de SenialBase completamente.
+
+        :return: Instancia configurada de SenialLista (comportamiento lista)
+        :rtype: SenialLista
         """
-        return Senial()
+        return SenialLista()
 
     @staticmethod
     def crear_senial_pila():
@@ -212,8 +214,8 @@ class Configurador:
         Señal que actúa como pila - Last In, First Out.
         Comportamiento: Extracción desde el final con sacar_valor().
 
-        ⚠️ NOTA LSP: Esta implementación puede no ser intercambiable
-        con Senial básica debido a semánticas diferentes.
+        ✅ LSP APLICADO: SenialPila cumple contrato de SenialBase completamente.
+        Intercambiable polimórficamente con cualquier otra señal.
 
         :return: Instancia configurada de SenialPila (comportamiento LIFO)
         :rtype: SenialPila
@@ -230,11 +232,11 @@ class Configurador:
         Comportamiento: Extracción desde el inicio con punteros circulares.
         Tamaño: 10 elementos (configuración por defecto).
 
-        ⚠️ NOTA LSP: Esta implementación puede no ser intercambiable
-        con Senial básica debido a:
-        - Constructor requiere tamaño obligatorio
-        - Estructura interna de array circular
-        - Semánticas FIFO vs acceso por índice
+        ✅ LSP APLICADO (CORRECCIONES):
+        - ✅ Constructor ahora acepta parámetro opcional
+        - ✅ Métodos con firmas consistentes con SenialBase
+        - ✅ Intercambiable polimórficamente con otras señales
+        - ✅ obtener_valor() implementa lógica circular correcta
 
         :return: Instancia configurada de SenialCola (comportamiento FIFO)
         :rtype: SenialCola
@@ -262,7 +264,7 @@ class Configurador:
         :return: Señal configurada específicamente para adquisidores
         :rtype: Senial
         """
-        return Configurador.crear_senial_cola()
+        return Configurador.crear_senial_pila()
 
     @staticmethod
     def crear_senial_procesador():
@@ -285,4 +287,4 @@ class Configurador:
         :return: Señal configurada específicamente para procesadores
         :rtype: Senial
         """
-        return Configurador.crear_senial_pila()
+        return Configurador.crear_senial_cola()

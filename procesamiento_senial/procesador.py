@@ -18,11 +18,11 @@ DESPUÉS: Solo agregar nueva clase que herede de BaseProcesador (cumple OCP)
 - ProcesadorConUmbral: Estrategia concreta para filtrado por umbral
 - Futuras extensiones: FFT, Wavelets, Filtros digitales, etc.
 
-Versión: 2.0.0 - OCP con Strategy Pattern completo
+Versión: 2.1.0 - OCP + DIP (Dependency Inversion Principle)
 Autor: Victor Valotto
 """
 from abc import ABCMeta, abstractmethod
-from dominio_senial.senial import Senial
+from dominio_senial.senial import SenialBase
 
 
 class BaseProcesador(metaclass=ABCMeta):
@@ -48,12 +48,20 @@ class BaseProcesador(metaclass=ABCMeta):
     - Modificar código que usa BaseProcesador
     - Modificar Factory methods existentes
     - Modificar tests polimórficos
+
+    ✅ DIP APLICADO:
+    Depende de SenialBase (abstracción), no de implementaciones concretas.
+    El tipo específico (SenialLista, SenialPila, SenialCola) es inyectado
+    por el Configurador en tiempo de creación.
     """
     def __init__(self):
         """
-        Se inicializa con la senial que se va a procesar
+        Se inicializa con la señal que se va a procesar.
+
+        ✅ DIP: No instancia señal concreta aquí. El Configurador inyectará
+        el tipo específico mediante self._senial = Configurador.crear_senial_xxx()
         """
-        self._senial = Senial()
+        self._senial: SenialBase = None  # Inyectado por Configurador
 
     @abstractmethod
     def procesar(self, senial):

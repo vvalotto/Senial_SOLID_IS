@@ -13,13 +13,13 @@ Arquitectura basada en patrón Strategy con abstracciones:
 - ProcesadorAmplificador: Implementación para amplificación de señales
 - ProcesadorConUmbral: Implementación para filtrado por umbral
 
-Versión: 2.0.0 (actualizada para OCP)
+Versión: 2.1.0 (DIP aplicado - Dependency Inversion Principle)
 Autor: Victor Valotto
 """
 
 from .procesador import BaseProcesador, ProcesadorAmplificador, ProcesadorConUmbral
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 __author__ = "Victor Valotto"
 __all__ = [
     'BaseProcesador',

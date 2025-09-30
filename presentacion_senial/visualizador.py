@@ -3,8 +3,11 @@ Módulo que define la clase Visualizador de señales.
 
 Aplicación del SRP: Esta clase tiene una única responsabilidad:
 mostrar los datos de una señal digital.
+
+✅ VERSIÓN 6.0 - Compatible con LSP
+Ahora trabaja polimórficamente con SenialBase y todas sus implementaciones.
 """
-from dominio_senial import Senial
+from dominio_senial import SenialBase
 
 
 class Visualizador:
@@ -14,6 +17,9 @@ class Visualizador:
     Responsabilidad única: Mostrar los datos de una señal digital en consola.
     Esta clase se encarga exclusivamente de presentar los valores de la señal,
     separando esta responsabilidad de la adquisición y procesamiento.
+
+    ✅ LSP APLICADO: Trabaja polimórficamente con cualquier SenialBase
+    (SenialLista, SenialPila, SenialCola)
     """
 
     def __init__(self):
@@ -21,18 +27,20 @@ class Visualizador:
         Inicializa el visualizador de señales.
         """
 
-    def mostrar_datos(self, senial: Senial) -> None:
+    def mostrar_datos(self, senial: SenialBase) -> None:
         """
         Muestra los datos de una señal en formato simple.
 
-        :param senial: Señal a visualizar
+        ✅ LSP: Acepta cualquier SenialBase (SenialLista, SenialPila, SenialCola)
+
+        :param senial: Señal a visualizar (cualquier implementación de SenialBase)
         :raises TypeError: Si la señal no es del tipo correcto
         :raises ValueError: Si la señal está vacía
         """
-        if not isinstance(senial, Senial):
-            raise TypeError("El parámetro debe ser una instancia de la clase Senial")
+        if not isinstance(senial, SenialBase):
+            raise TypeError("El parámetro debe ser una instancia de SenialBase")
 
-        if senial.esta_vacia():
+        if senial.obtener_tamanio() == 0:
             raise ValueError("No se puede visualizar una señal vacía")
 
         print("=== VISUALIZACIÓN DE SEÑAL ===")

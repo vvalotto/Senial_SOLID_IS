@@ -11,13 +11,13 @@ Aplicación de principios SOLID:
 Arquitectura:
 - Configurador: Factory centralizado con configuración programática
 
-Versión: 1.0.0 (configuración programática)
+Versión: 2.1.1 (documentación actualizada + limpieza de código)
 Autor: Victor Valotto
 """
 
 from .configurador import Configurador
 
-__version__ = "2.0.0"
+__version__ = "2.1.1"
 __author__ = "Victor Valotto"
 __all__ = [
     'Configurador'

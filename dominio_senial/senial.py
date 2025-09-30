@@ -1,278 +1,361 @@
 """
-Módulo que define la entidad Senial - VERSIÓN ANTI-PATRÓN.
+Módulo que define la entidad Senial.
+Es considerada una entidad del dominio.
 
-⚠️ ADVERTENCIA DIDÁCTICA: Este código demuestra VIOLACIONES INTENCIONALES de principios SOLID.
-📚 PROPÓSITO EDUCATIVO: Mostrar el contraste entre "funciona" vs "funciona correctamente".
+✅ VERSIÓN LSP CORRECTA - Refactorización completa aplicando principios SOLID.
 
-🚨 VIOLACIONES IMPLEMENTADAS:
-- ❌ SRP: Una clase con múltiples responsabilidades (lista + cola + validación)
-- ❌ OCP: Modificación requerida para agregar nuevos tipos (isinstance anti-pattern)
-- ❌ LSP: Comportamientos completamente diferentes en subclases
-- ❌ DIP: Dependencia de clases concretas (isinstance checks)
+📚 EVOLUCIÓN DIDÁCTICA:
+- ANTES: Violaciones múltiples de LSP, OCP y SRP (anti-patrón isinstance)
+- AHORA: Abstracción con contrato común, intercambiabilidad polimórfica garantizada
 
-📖 PARA COMPARAR CON: Implementación SOLID correcta en versión futura
-🎯 OBJETIVO: Demostrar por qué los principios SOLID son necesarios
+🎯 PRINCIPIOS APLICADOS:
+- ✅ LSP: Subclases verdaderamente intercambiables con firmas consistentes
+- ✅ OCP: Extensible sin modificación (sin instanceof checks)
+- ✅ SRP: Cada clase una responsabilidad específica
+
+🏗️ ARQUITECTURA:
+- SenialBase(ABC): Abstracción que define contrato común
+- SenialLista: Comportamiento de lista dinámica
+- SenialPila: Comportamiento LIFO (Last In, First Out)
+- SenialCola: Comportamiento FIFO (First In, First Out) con cola circular
 
 Autor: Victor Valotto
-Propósito: Demostración didáctica de anti-patrones
+Versión: 4.0.0 - LSP Completo + Arquitectura Limpia
 """
-from typing import Any, List
+from abc import abstractmethod, ABC
+from typing import Any, List, Optional
 
 
-class Senial:
+class SenialBase(ABC):
     """
-    ❌ CLASE BASE CON VIOLACIONES MÚLTIPLES DE SOLID
+    ✅ ABSTRACCIÓN BASE - Contrato común para todas las señales.
 
-    🚨 VIOLACIÓN DE SRP:
-    Esta clase tiene MÚLTIPLES responsabilidades:
-    1. Manejar lista básica de valores
-    2. Validar límites de capacidad
-    3. Manejar lógica específica de cola (instanceof)
-    4. Gestionar diferentes estructuras de datos
+    📖 LSP APLICADO:
+    Define métodos abstractos con firmas consistentes que TODAS las subclases
+    deben implementar de forma intercambiable.
 
-    🚨 VIOLACIÓN DE OCP:
-    Para agregar un nuevo tipo (ej: SenialDeque), se debe MODIFICAR
-    el metodo poner_valor() agregando más checks instanceof.
+    🎯 CONTRATO COMÚN:
+    - Constructor con parámetro opcional (compatible con todas las subclases)
+    - Métodos abstractos con firmas idénticas
+    - Propiedades comunes accesibles polimórficamente
 
-    🚨 VIOLACIÓN DE LSP:
-    Las subclases tienen comportamientos completamente diferentes:
-    - Senial usa append()
-    - SenialCola usa índice circular
-    ¡No son intercambiables!
-
-    🚨 VIOLACIÓN DE DIP:
-    Depende directamente de clases concretas (SenialCola)
-    mediante isinstance() checks.
+    ✅ GARANTÍAS LSP:
+    - Intercambiabilidad: Cualquier SenialBase funciona donde se espera la abstracción
+    - Precondiciones consistentes: Mismos parámetros en todos los métodos
+    - Postcondiciones garantizadas: Comportamiento predecible
     """
 
     def __init__(self, tamanio: int = 10):
         """
-        Constructor: Inicializa la lista de valores vacía.
-        :param tamanio: Tamaño inicial de la señal.
-        """
-        self._valores: List[float] = []
-        self._fecha_adquisicion = None
-        self._cantidad = 0
-        self._tamanio = tamanio
+        Constructor común con parámetro opcional.
 
-    # Propiedades
+        ✅ LSP: Parámetro opcional permite instanciar cualquier subclase
+        uniformemente sin conocer su tipo específico.
+
+        :param tamanio: Tamaño máximo de la señal (default: 10)
+        """
+        self._fecha_adquisicion: Any = None
+        self._cantidad: int = 0
+        self._tamanio: int = tamanio
+
+    # ==================== PROPIEDADES ====================
+
     @property
     def fecha_adquisicion(self) -> Any:
+        """Fecha de adquisición de la señal."""
         return self._fecha_adquisicion
 
     @fecha_adquisicion.setter
-    def fecha_adquisicion(self, valor) -> None:
+    def fecha_adquisicion(self, valor: Any) -> None:
         self._fecha_adquisicion = valor
 
     @property
     def cantidad(self) -> int:
+        """Cantidad actual de elementos en la señal."""
         return self._cantidad
-
-    @cantidad.setter
-    def cantidad(self, valor) -> None:
-        self._cantidad = valor
 
     @property
     def tamanio(self) -> int:
+        """Tamaño máximo de la señal."""
         return self._tamanio
 
-    @tamanio.setter
-    def tamanio(self, valor)-> None:
-        self._tamanio = valor
+    # ==================== MÉTODOS ABSTRACTOS ====================
 
-    @property
-    def valores(self) -> List[float]:
-        return self._valores
-
-    @valores.setter
-    def valores(self, datos: List[float]) -> None:
-        self._valores = datos
-
-    def poner_valor(self, valor):
+    @abstractmethod
+    def poner_valor(self, valor: float) -> None:
         """
-        ❌ METODO QUE VIOLA MÚLTIPLES PRINCIPIOS SOLID
+        Agregar valor según la semántica de la estructura.
 
-        🚨 VIOLACIÓN DE SRP:
-        Este metodo tiene MÚLTIPLES responsabilidades:
-        - Validar límites de capacidad
-        - Manejar lógica de lista básica
-        - Manejar lógica específica de cola circular
-        - Actualizar contadores
+        ✅ LSP: Firma consistente en todas las subclases.
 
-        🚨 VIOLACIÓN DE OCP:
-        Para agregar SenialDeque, se debe MODIFICAR este metodo:
-        elif isinstance(self, SenialDeque): # ← Nueva modificación requerida
+        :param valor: Valor a agregar
+        """
+        pass
 
-        🚨 VIOLACIÓN DE LSP:
-        Mismo metodo, comportamientos COMPLETAMENTE DIFERENTES:
-        - Senial: usa append() → lista dinámica
-        - SenialCola: usa índice → array circular
+    @abstractmethod
+    def sacar_valor(self) -> Optional[float]:
+        """
+        Extraer valor según la semántica de la estructura.
 
-        🚨 VIOLACIÓN DE DIP:
-        Depende de clase concreta SenialCola mediante isinstance()
+        ✅ LSP: Firma consistente SIN parámetros en todas las subclases.
+        - SenialLista: Extrae del final (comportamiento por defecto)
+        - SenialPila: Extrae del final (LIFO)
+        - SenialCola: Extrae del inicio (FIFO)
 
-        :param valor: dato de la senial obtenida
+        :return: Valor extraído o None si está vacía
+        """
+        pass
+
+    @abstractmethod
+    def limpiar(self) -> None:
+        """
+        Vaciar la estructura según su implementación interna.
+
+        ✅ LSP: Cada subclase limpia correctamente su estructura específica.
+        """
+        pass
+
+    @abstractmethod
+    def obtener_valor(self, indice: int) -> Optional[float]:
+        """
+        Obtener valor por índice lógico.
+
+        ⚠️ NOTA LSP: Cada subclase interpreta "índice" según su semántica:
+        - SenialLista/Pila: Índice directo en array
+        - SenialCola: Índice relativo desde la cabeza (cola circular)
+
+        :param indice: Índice del valor a obtener
+        :return: Valor en el índice o None si fuera de rango
+        """
+        pass
+
+    @abstractmethod
+    def obtener_tamanio(self) -> int:
+        """
+        Cantidad actual de elementos.
+
+        ✅ LSP: Retorna cantidad real de elementos (no capacidad).
+
+        :return: Número de elementos actuales
+        """
+        pass
+
+    def __str__(self) -> str:
+        """Representación en string de la señal."""
+        return f"Tipo: {type(self).__name__}\nFecha: {self._fecha_adquisicion}"
+
+
+class SenialLista(SenialBase):
+    """
+    ✅ SEÑAL CON COMPORTAMIENTO DE LISTA DINÁMICA.
+
+    📖 SEMÁNTICA:
+    - Acceso secuencial y por índice
+    - Inserción al final
+    - Extracción desde el final (por defecto)
+
+    🎯 LSP CUMPLIDO:
+    - Constructor compatible: parámetro opcional heredado
+    - Métodos con firmas idénticas a la abstracción
+    - Comportamiento predecible y consistente
+    """
+
+    def __init__(self, tamanio: int = 10):
+        super().__init__(tamanio)
+        self._valores: List[float] = []
+
+    def poner_valor(self, valor: float) -> None:
+        """
+        Agrega un valor al final de la lista.
+
+        :param valor: Dato de la señal obtenida
         """
         if self._cantidad >= self._tamanio:
             print('Error: No se pueden poner más datos')
             return
-
-        # ❌ ANTI-PATRÓN: isinstance() check - viola OCP y DIP
-        if isinstance(self, SenialCola):
-            # Lógica específica de cola circular hardcodeada
-            self._valores[self._cola] = valor
-            self._cola = (self._cola + 1) % self._tamanio
-        else:
-            # Lógica básica de lista
-            self._valores.append(valor)
-
+        self._valores.append(valor)
         self._cantidad += 1
 
-    def obtener_valor(self, indice: int) -> Any:
+    def sacar_valor(self) -> Optional[float]:
         """
-        Recupera el contenido según el indice
-        :param indice: Indice del valor a recuperar.
-        :return: Valor en el indice especificado.
+        ✅ LSP CORRECTO: Sin parámetros (extrae del final por defecto).
+
+        Comportamiento: Extrae el último elemento (similar a pila).
+
+        :return: Valor extraído del final o None si está vacía
+        """
+        if self._cantidad == 0:
+            print('Error: No hay valores para sacar')
+            return None
+        self._cantidad -= 1
+        return self._valores.pop()
+
+    def sacar_valor_en(self, indice: int) -> Optional[float]:
+        """
+        ✅ MÉTODO ADICIONAL ESPECÍFICO: Extraer por índice arbitrario.
+
+        ⚠️ NOTA LSP: Este método NO viola LSP porque:
+        - No sobrescribe método abstracto
+        - Es funcionalidad ADICIONAL específica de SenialLista
+        - Clientes polimórficos no dependen de él
+
+        :param indice: Índice del valor a extraer
+        :return: Valor extraído o None si índice inválido
+        """
+        if self._cantidad == 0:
+            print('Error: No hay valores para sacar')
+            return None
+        try:
+            valor = self._valores.pop(indice)
+            self._cantidad -= 1
+            return valor
+        except IndexError:
+            print(f'Error: Índice {indice} fuera de rango')
+            return None
+
+    def limpiar(self) -> None:
+        """Vacía completamente la lista."""
+        self._valores.clear()
+        self._cantidad = 0
+
+    def obtener_valor(self, indice: int) -> Optional[float]:
+        """
+        Obtiene valor por índice directo.
+
+        :param indice: Índice del valor
+        :return: Valor en el índice o None si fuera de rango
         """
         try:
-            valor = self._valores[indice]
-            return valor
+            return self._valores[indice]
         except IndexError:
             print(f'Error: Índice {indice} fuera de rango')
             return None
 
     def obtener_tamanio(self) -> int:
         """
-        ⚠️ METODO PROBLEMÁTICO - Inconsistente entre subclases
+        ✅ LSP: Retorna cantidad real de elementos.
 
-        🚨 PROBLEMA LSP:
-        - En Senial: len(self._valores) funciona correctamente
-        - En SenialCola: len(self._valores) puede incluir elementos None
-        - En SenialPila: len(self._valores) no refleja _cantidad real
-
-        :return: Tamaño de la lista de valores (inconsistente por violaciones)
+        :return: Número de elementos en la lista
         """
         return len(self._valores)
 
-    def esta_vacia(self) -> bool:
-        """
-        ⚠️ METODO AGREGADO PARA COMPATIBILIDAD CON VISUALIZADOR
 
-        🚨 PROBLEMA LSP:
-        Diferentes implementaciones necesitarían lógicas diferentes:
-        - Senial: len(_valores) == 0
-        - SenialPila: _cantidad == 0
-        - SenialCola: _cantidad == 0
-
-        Esta implementación es INCORRECTA para subclases pero funciona por casualidad.
-
-        :return: True si la señal está vacía (resultado inconsistente)
-        """
-        return len(self._valores) == 0
-
-    def obtener_valores(self) -> List[float]:
-        """
-        Retorna la lista de valores.
-        :return: Lista de valores.
-        """
-        return self._valores
-
-    def poner_valores(self, valores: List[float]) -> None:
-        """
-        Agrega una lista de valores a la lista de la señal
-        :param valores: lista de valores a agregar
-        """
-        self._valores = valores
-
-class SenialPila(Senial):
+class SenialPila(SenialBase):
     """
-    ⚠️ SUBCLASE CON VIOLACIONES LSP MENORES
+    ✅ SEÑAL CON COMPORTAMIENTO LIFO (Last In, First Out).
 
-    🚨 VIOLACIONES LSP REALES:
-    - Agrega método sacar_valor() que NO existe en clase base (extiende interfaz)
-    - Constructor compatible pero comportamiento interno diferente
+    📖 SEMÁNTICA:
+    - Inserción al final (push)
+    - Extracción desde el final (pop)
+    - Comportamiento clásico de pila
 
-    ✅ LSP RESPETADO EN:
-    - sacar_valor(): Cumple contrato de "extraer elemento" con semántica LIFO apropiada
-    - Métodos heredados: Funcionan correctamente para acceso por índice
-
-    🚨 PROBLEMAS TÉCNICOS DETECTADOS:
-    - Usa _cantidad para validar, pero acceso directo a _valores[]
-    - Mezcla semántica LIFO (sacar_valor) con acceso aleatorio (obtener_valor)
-    - NO es problema LSP sino de DISEÑO de interfaz
-
-    ⚠️ NOTA: Funciona correctamente, diseño mejorable
+    🎯 LSP CUMPLIDO:
+    - Constructor compatible: parámetro opcional
+    - sacar_valor() sin parámetros (consistente)
+    - Métodos implementados según contrato común
     """
-    def sacar_valor(self) -> Any:
+
+    def __init__(self, tamanio: int = 10):
+        super().__init__(tamanio)
+        self._valores: List[float] = []
+
+    def poner_valor(self, valor: float) -> None:
         """
-        Saca un valor de la pila.
-        :return: Valor sacado de la pila.
+        Agrega un valor al tope de la pila (final de la lista).
+
+        :param valor: Dato de la señal obtenida
         """
-        if self._cantidad != 0:
-            self._cantidad -= 1
-            return self._valores[self._cantidad]
-        else:
+        if self._cantidad >= self._tamanio:
+            print('Error: No se pueden poner más datos')
+            return
+        self._valores.append(valor)
+        self._cantidad += 1
+
+    def sacar_valor(self) -> Optional[float]:
+        """
+        ✅ LSP CORRECTO: Extrae del tope de la pila (LIFO).
+
+        :return: Valor extraído del tope o None si está vacía
+        """
+        if self._cantidad == 0:
             print('Error: No hay valores para sacar')
             return None
+        self._cantidad -= 1
+        return self._valores.pop()
 
-class SenialCola(Senial):
-    """
-    ❌ SUBCLASE CON VIOLACIONES LSP GRAVES
+    def limpiar(self) -> None:
+        """Vacía completamente la pila."""
+        self._valores.clear()
+        self._cantidad = 0
 
-    🚨 VIOLACIONES CRÍTICAS DE LSP:
-    - Constructor INCOMPATIBLE: requiere parámetro obligatorio (rompe sustitución)
-    - Estructura interna INCOMPATIBLE: [None] * tamanio vs [] (rompe invariantes)
-    - obtener_tamanio() devuelve tamaño fijo vs tamaño real (comportamiento inconsistente)
-    - obtener_valor() puede devolver None vs siempre valor válido (postcondición violada)
-
-    ✅ LSP RESPETADO EN:
-    - sacar_valor(): Cumple contrato correcto con semántica FIFO apropiada
-
-    🚨 VIOLACIONES ADICIONALES (OCP):
-    - Requiere lógica específica hardcodeada en clase base (isinstance)
-    - Clase base modificada específicamente para esta subclase
-
-    ❌ ANTI-PATRÓN DEMOSTRADO:
-    Esta clase "funciona" solo porque la clase base fue modificada
-    específicamente para ella (violación grave de OCP)
-    """
-    def __init__(self, tamanio: int):
+    def obtener_valor(self, indice: int) -> Optional[float]:
         """
-        Construye la instancia de la estructura cola circular, donde se indica el
-        tamaño de la cola y se inicializan los punteros de la cabeza y cola.
-        :param tamanio: Tamaño de la cola.
+        Obtiene valor por índice directo en la pila.
+
+        :param indice: Índice del valor (0 = fondo, n-1 = tope)
+        :return: Valor en el índice o None si fuera de rango
+        """
+        try:
+            return self._valores[indice]
+        except IndexError:
+            print(f'Error: Índice {indice} fuera de rango')
+            return None
+
+    def obtener_tamanio(self) -> int:
+        """
+        ✅ LSP: Retorna cantidad real de elementos en la pila.
+
+        :return: Número de elementos actuales
+        """
+        return len(self._valores)
+
+
+class SenialCola(SenialBase):
+    """
+    ✅ SEÑAL CON COMPORTAMIENTO FIFO (First In, First Out) - Cola circular.
+
+    📖 SEMÁNTICA:
+    - Inserción al final (enqueue)
+    - Extracción desde el inicio (dequeue)
+    - Implementación con array circular para eficiencia
+
+    🎯 LSP CUMPLIDO (CORRECCIONES APLICADAS):
+    - ✅ Constructor compatible: parámetro opcional (CORREGIDO)
+    - ✅ sacar_valor() sin parámetros (consistente)
+    - ✅ limpiar() reinicia correctamente punteros circulares
+    - ✅ obtener_valor() con lógica circular apropiada
+    - ✅ obtener_tamanio() retorna cantidad real (no capacidad)
+    """
+
+    def __init__(self, tamanio: int = 10):
+        """
+        ✅ CORRECCIÓN LSP: Parámetro opcional (antes era obligatorio).
+
+        :param tamanio: Tamaño máximo de la cola circular (default: 10)
         """
         super().__init__(tamanio)
-        self._cabeza = 0
-        self._cola = 0
-        self._valores = [None] * tamanio
+        self._cabeza: int = 0
+        self._cola: int = 0
+        self._valores: List[Optional[float]] = [None] * tamanio
 
-    def sacar_valor(self) -> Any:
+    def poner_valor(self, valor: float) -> None:
         """
-        ✅ METODO QUE RESPETA LSP CORRECTAMENTE
+        Agrega un valor al final de la cola circular.
 
-        📖 ANÁLISIS LSP REFINADO:
-        Este método SÍ respeta LSP porque el contrato es claro:
-        "extraer un elemento de la estructura según su semántica específica"
+        :param valor: Dato de la señal obtenida
+        """
+        if self._cantidad >= self._tamanio:
+            print('Error: No se pueden poner más datos')
+            return
+        self._valores[self._cola] = valor
+        self._cola = (self._cola + 1) % self._tamanio
+        self._cantidad += 1
 
-        🎯 CONTRATO CUMPLIDO:
-        - SenialPila.sacar_valor() → LIFO (comportamiento esperado para pila)
-        - SenialCola.sacar_valor() → FIFO (comportamiento esperado para cola)
-        - Ambas devuelven: elemento válido o None si está vacía
+    def sacar_valor(self) -> Optional[float]:
+        """
+        ✅ LSP CORRECTO: Extrae desde el inicio de la cola (FIFO).
 
-        ✅ INTERCAMBIABILIDAD POLIMÓRFICA:
-        ```python
-        def vaciar_estructura(estructura):
-            while not estructura.esta_vacia():
-                valor = estructura.sacar_valor()  # ← Funciona correctamente
-                procesar(valor)
-        ```
-
-        🎓 LECCIÓN TÉCNICA:
-        En estructuras de datos es NORMAL que implementaciones diferentes
-        tengan semánticas específicas (LIFO vs FIFO) manteniendo el contrato común.
-
-        :return: dato extraído (FIFO - primer elemento insertado)
+        :return: Valor extraído del inicio o None si está vacía
         """
         if self._cantidad == 0:
             print('Error: No hay valores para sacar')
@@ -283,3 +366,58 @@ class SenialCola(Senial):
         self._cabeza = (self._cabeza + 1) % self._tamanio
         self._cantidad -= 1
         return valor
+
+    def limpiar(self) -> None:
+        """
+        ✅ CORRECCIÓN LSP: Reinicia correctamente array circular y punteros.
+
+        ANTES: Usaba .clear() heredado que rompía la estructura circular.
+        AHORA: Reinicializa array y resetea punteros cabeza/cola.
+        """
+        self._valores = [None] * self._tamanio
+        self._cabeza = 0
+        self._cola = 0
+        self._cantidad = 0
+
+    def obtener_valor(self, indice: int) -> Optional[float]:
+        """
+        ✅ CORRECCIÓN LSP: Acceso considerando cola circular.
+
+        indice=0 devuelve el elemento en la cabeza (próximo a extraer).
+        indice=n devuelve el n-ésimo elemento desde la cabeza.
+
+        ANTES: Acceso directo self._valores[indice] devolvía None en posiciones
+               ya extraídas o valores incorrectos por rotación circular.
+        AHORA: Calcula índice circular correctamente desde la cabeza.
+
+        :param indice: Índice lógico desde la cabeza (0 = próximo a sacar)
+        :return: Valor en el índice circular o None si fuera de rango
+        """
+        if indice < 0 or indice >= self._cantidad:
+            print(f'Error: Índice {indice} fuera de rango')
+            return None
+
+        # Calcular índice circular desde la cabeza
+        indice_real = (self._cabeza + indice) % self._tamanio
+        return self._valores[indice_real]
+
+    def obtener_tamanio(self) -> int:
+        """
+        ✅ CORRECCIÓN LSP: Retorna cantidad de elementos, no capacidad del array.
+
+        ANTES: len(self._valores) retornaba capacidad fija (incluye None).
+        AHORA: Retorna self._cantidad (elementos reales).
+
+        :return: Número de elementos actuales en la cola
+        """
+        return self._cantidad
+
+
+# ==================== EXPORTS ====================
+
+__all__ = [
+    'SenialBase',
+    'SenialLista',
+    'SenialPila',
+    'SenialCola'
+]

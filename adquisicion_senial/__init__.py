@@ -14,13 +14,13 @@ Arquitectura basada en patrón Strategy con abstracciones:
 - AdquisidorConsola: Implementación para entrada desde teclado
 - AdquisidorArchivo: Implementación para entrada desde archivos
 
-Versión: 2.0.0 (actualizada para OCP)
+Versión: 2.1.0 (DIP aplicado - Dependency Inversion Principle)
 Autor: Victor Valotto
 """
 
 from .adquisidor import BaseAdquisidor, AdquisidorConsola, AdquisidorArchivo
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 __author__ = "Victor Valotto"
 __all__ = [
     'BaseAdquisidor',

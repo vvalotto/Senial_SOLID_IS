@@ -19,11 +19,11 @@ usando el patrón Strategy para diferentes tipos de adquisición de señales dig
 - AdquisidorArchivo: Estrategia concreta para lectura de archivos
 - Futuras extensiones: Sensores, APIs, bases de datos, etc.
 
-Versión: 2.0.0 - OCP con Strategy Pattern
+Versión: 2.1.0 - OCP + DIP (Dependency Inversion Principle)
 Autor: Victor Valotto
 """
 from abc import ABCMeta, abstractmethod
-from dominio_senial.senial import Senial
+from dominio_senial.senial import SenialBase
 
 
 class BaseAdquisidor(metaclass=ABCMeta):
@@ -48,14 +48,22 @@ class BaseAdquisidor(metaclass=ABCMeta):
     - Esta clase abstracta
     - Código que usa BaseAdquisidor
     - Tests polimórficos existentes
+
+    ✅ DIP APLICADO:
+    Depende de SenialBase (abstracción), no de implementaciones concretas.
+    El tipo específico (SenialLista, SenialPila, SenialCola) es inyectado
+    por el Configurador en tiempo de creación.
     """
     def __init__(self, numero_muestras):
         """
-        Inicializa el adquisidor base con una señal vacía.
+        Inicializa el adquisidor base.
+
+        ✅ DIP: No instancia señal concreta aquí. El Configurador inyectará
+        el tipo específico mediante self._senial = Configurador.crear_senial_xxx()
 
         :param numero_muestras: Cantidad de muestras a adquirir
         """
-        self._senial = Senial()
+        self._senial: SenialBase = None  # Inyectado por Configurador
         self._numero_muestras = numero_muestras
 
     def obtener_senial_adquirida(self):
