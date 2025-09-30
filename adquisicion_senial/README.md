@@ -1,6 +1,6 @@
 # 📡 Adquisición Señal - OCP para Captura de Datos
 
-**Versión**: 2.0.0 (refactorizada para OCP)
+**Versión**: 2.1.0 - OCP + DIP Aplicado
 **Autor**: Victor Valotto
 **Responsabilidad**: Adquisición de datos desde múltiples fuentes usando Strategy Pattern
 
@@ -24,6 +24,11 @@ Este paquete implementa la **capa de adquisición** usando el **patrón Strategy
 ### ✅ LSP (Liskov Substitution Principle)
 - **Intercambiabilidad**: Cualquier adquisidor funciona polimórficamente
 - **Contrato consistente**: Todas las implementaciones cumplen `BaseAdquisidor`
+
+### ✅ DIP (Dependency Inversion Principle)
+- **Depende de abstracción**: `self._senial: SenialBase` (no implementaciones concretas)
+- **Inyección de dependencias**: El `Configurador` inyecta el tipo concreto (`SenialLista`, `SenialPila`, `SenialCola`)
+- **Flexibilidad**: Cambiar tipo de señal sin modificar el adquisidor
 
 ## 🏗️ Arquitectura Strategy Pattern
 
@@ -61,9 +66,15 @@ adquisicion_senial/
 
 ```python
 from abc import ABCMeta, abstractmethod
+from dominio_senial.senial import SenialBase
 
 class BaseAdquisidor(metaclass=ABCMeta):
     """Contrato común para todos los adquisidores"""
+
+    def __init__(self, numero_muestras):
+        # ✅ DIP: Depende de abstracción, no de implementación concreta
+        self._senial: SenialBase = None  # Inyectado por Configurador
+        self._numero_muestras = numero_muestras
 
     @abstractmethod
     def leer_senial(self):
@@ -218,6 +229,10 @@ from configurador import Configurador
 
 # Configuración "de fábrica" actual
 adquisidor = Configurador.crear_adquisidor()  # AdquisidorArchivo('senial.txt')
+
+# ✅ DIP APLICADO: El Configurador inyecta el tipo de señal específico
+# adquisidor._senial = Configurador.crear_senial_adquisidor()  # → SenialPila
+# Esto permite cambiar el tipo de colección sin modificar el adquisidor
 
 # Opciones alternativas disponibles
 adq_consola = Configurador.crear_adquisidor_consola()      # AdquisidorConsola(5)

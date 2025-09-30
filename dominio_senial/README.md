@@ -1,11 +1,16 @@
-
 # 🏠 Dominio Señal - Entidades del Dominio
 
-**Versión**: 1.0.0
+**Versión**: 4.0.0 - LSP Completo + Arquitectura Limpia
 **Autor**: Victor Valotto
 **Responsabilidad**: Entidades fundamentales del dominio de señales digitales
 
 Paquete independiente que implementa el **núcleo del dominio** en la arquitectura de procesamiento de señales, siguiendo principios SOLID y Clean Architecture.
+
+## ⚠️ BREAKING CHANGES v4.0.0
+
+- **Eliminado alias `Senial`** - Usar clases específicas explícitamente
+- **Nueva jerarquía LSP** - `SenialBase` como abstracción, implementaciones `SenialLista`, `SenialPila`, `SenialCola`
+- **Intercambiabilidad garantizada** - 100% polimorfismo funcional
 
 ## 📋 Descripción
 
@@ -15,28 +20,105 @@ Este paquete representa la **capa más interna** de la arquitectura, conteniendo
 
 **Una única razón para cambiar**: Modificaciones en las entidades del dominio de señales digitales.
 
-## 📦 Entidades del Dominio
+## 🏗️ Arquitectura LSP v4.0.0
 
-### 🔹 Clase `Senial`
+### Jerarquía de Clases
 
-**Responsabilidad**: Representar una señal digital y gestionar su colección de valores.
+```
+SenialBase (ABC)
+├── Abstracción con contrato común
+├── Métodos abstractos obligatorios
+└── Propiedades comunes
 
-```python
-class Senial:
-    """Entidad que representa una señal digital"""
-
-    def poner_valor(self, valor)           # Agregar muestra a la señal
-    def obtener_valor(self, indice)        # Obtener muestra por índice
-    def obtener_tamanio(self)              # Cantidad de muestras
-    def esta_vacia(self)                   # Verificar si está vacía
+    ├── SenialLista (Concreta)
+    │   └── Comportamiento: Lista dinámica
+    │
+    ├── SenialPila (Concreta)
+    │   └── Comportamiento: LIFO (Last In, First Out)
+    │
+    └── SenialCola (Concreta)
+        └── Comportamiento: FIFO (First In, First Out)
 ```
 
-### ✅ Características de la Entidad
+## 📦 Entidades del Dominio
 
-- **Encapsulación**: Datos internos protegidos (`_valores`)
-- **Validación**: Manejo de índices fuera de rango
-- **Inmutable por interfaz**: Solo operaciones seguras expuestas
-- **Sin dependencias**: Código puro de Python
+### 🔹 Clase Abstracta `SenialBase`
+
+**Responsabilidad**: Definir el contrato común para todas las señales.
+
+```python
+from abc import ABC, abstractmethod
+from typing import Optional
+
+class SenialBase(ABC):
+    """Abstracción base que define el contrato para todas las señales"""
+
+    def __init__(self, tamanio: int = 10)
+
+    # Propiedades comunes
+    @property
+    def fecha_adquisicion(self) -> Any
+    @property
+    def cantidad(self) -> int
+    @property
+    def tamanio(self) -> int
+
+    # Métodos abstractos (obligatorios)
+    @abstractmethod
+    def poner_valor(self, valor: float) -> None
+
+    @abstractmethod
+    def sacar_valor(self) -> Optional[float]
+
+    @abstractmethod
+    def limpiar(self) -> None
+
+    @abstractmethod
+    def obtener_valor(self, indice: int) -> Optional[float]
+
+    @abstractmethod
+    def obtener_tamanio(self) -> int
+```
+
+### ✅ Implementaciones Concretas
+
+#### 1. **SenialLista** - Lista Dinámica
+
+```python
+from dominio_senial import SenialLista
+
+# Comportamiento: Acceso secuencial y por índice
+lista = SenialLista()
+lista.poner_valor(1.0)
+lista.poner_valor(2.0)
+lista.sacar_valor()  # → 2.0 (extrae del final)
+```
+
+#### 2. **SenialPila** - LIFO
+
+```python
+from dominio_senial import SenialPila
+
+# Comportamiento: Last In, First Out
+pila = SenialPila()
+pila.poner_valor(1.0)
+pila.poner_valor(2.0)
+pila.poner_valor(3.0)
+pila.sacar_valor()  # → 3.0 (último ingresado)
+```
+
+#### 3. **SenialCola** - FIFO (Cola Circular)
+
+```python
+from dominio_senial import SenialCola
+
+# Comportamiento: First In, First Out
+cola = SenialCola()
+cola.poner_valor(1.0)
+cola.poner_valor(2.0)
+cola.poner_valor(3.0)
+cola.sacar_valor()  # → 1.0 (primero ingresado)
+```
 
 ## 🚀 Instalación
 
@@ -50,56 +132,69 @@ pip install -e .
 
 ## 💻 Uso y Ejemplos
 
-### Ejemplo Básico
+### Ejemplo 1: Polimorfismo LSP
 
 ```python
-from dominio_senial import Senial
+from dominio_senial import SenialBase, SenialLista, SenialPila, SenialCola
 
-# Crear señal vacía
-senial = Senial()
+def procesar_cualquier_senial(senial: SenialBase):
+    """✅ Función genérica que funciona con CUALQUIER tipo de señal"""
+    senial.poner_valor(10.0)
+    senial.poner_valor(20.0)
+    senial.poner_valor(30.0)
 
-# Construir señal con datos
-valores = [1.5, 2.8, 3.2, 4.1, 5.7]
-for valor in valores:
-    senial.poner_valor(valor)
+    print(f"Tamaño: {senial.obtener_tamanio()}")
+    valor = senial.sacar_valor()
+    print(f"Extraído: {valor}")
 
-# Consultar información
-print(f"📊 Señal con {senial.obtener_tamanio()} muestras")
-print(f"🔸 Primera muestra: {senial.obtener_valor(0)}")
-print(f"🔸 Última muestra: {senial.obtener_valor(senial.obtener_tamanio()-1)}")
+# ✅ Funciona con las 3 implementaciones
+for tipo in [SenialLista, SenialPila, SenialCola]:
+    print(f"\n{tipo.__name__}:")
+    procesar_cualquier_senial(tipo())
 ```
 
-### Ejemplo con Validación
+### Ejemplo 2: Factory Pattern
 
 ```python
-# Manejo seguro de índices
-senial = Senial()
-senial.poner_valor(42.0)
+from dominio_senial import SenialBase, SenialLista, SenialPila, SenialCola
 
-# Acceso válido
-valor = senial.obtener_valor(0)  # Retorna 42.0
+def crear_senial(tipo: str, tamanio: int = 10) -> SenialBase:
+    """✅ Factory uniforme para todas las señales"""
+    tipos = {
+        'lista': SenialLista,
+        'pila': SenialPila,
+        'cola': SenialCola
+    }
+    return tipos[tipo](tamanio)
 
-# Acceso inválido
-valor = senial.obtener_valor(5)  # Retorna None (manejo seguro)
+# ✅ Todas instanciables uniformemente
+lista = crear_senial('lista')
+pila = crear_senial('pila')
+cola = crear_senial('cola')
 ```
 
-### Uso en Arquitectura
+### Ejemplo 3: Testing Genérico
 
 ```python
-# La entidad es agnóstica de su uso
-def procesar_senial_generica(senial: Senial):
-    """Función que funciona con cualquier señal, independiente del origen"""
-    if senial.esta_vacia():
-        return None
+import pytest
+from dominio_senial import SenialBase, SenialLista, SenialPila, SenialCola
 
-    # Procesamiento genérico
-    resultado = Senial()
-    for i in range(senial.obtener_tamanio()):
-        valor_original = senial.obtener_valor(i)
-        valor_procesado = valor_original * 2  # Ejemplo de procesamiento
-        resultado.poner_valor(valor_procesado)
+@pytest.mark.parametrize("tipo_senial", [
+    SenialLista,
+    SenialPila,
+    SenialCola
+])
+def test_contrato_base(tipo_senial):
+    """✅ Test único para todas las implementaciones"""
+    senial = tipo_senial()
 
-    return resultado
+    # Test del contrato común
+    senial.poner_valor(42.0)
+    assert senial.obtener_tamanio() == 1
+
+    valor = senial.sacar_valor()
+    assert valor == 42.0
+    assert senial.obtener_tamanio() == 0
 ```
 
 ## 🏗️ Posición en la Arquitectura
@@ -116,15 +211,17 @@ def procesar_senial_generica(senial: Senial):
 │     Interface Adapters                  │ ← adquisicion, procesamiento, presentacion
 ├─────────────────────────────────────────┤
 │          🏠 DOMINIO 🏠                  │ ← dominio_senial (ESTE PAQUETE)
+│     SenialBase + Implementaciones       │    v4.0.0 - LSP Completo
 └─────────────────────────────────────────┘
 ```
 
-### Principios Aplicados
+### Principios SOLID Aplicados
 
-- **🎯 SRP**: Una responsabilidad - gestionar entidades de señales
+- **✅ SRP**: Una responsabilidad - gestionar entidades de señales
+- **✅ OCP**: Extensible sin modificación - agregar nuevas señales sin tocar la base
+- **✅ LSP**: Intercambiabilidad garantizada - todas las señales funcionan polimórficamente
 - **⭐ Estabilidad**: Centro estable - todos los demás paquetes dependen de este
 - **🚫 Independencia**: No depende de ningún otro paquete
-- **♻️ Reutilización**: Puede usarse en cualquier contexto de señales digitales
 
 ## 🧪 Testing
 
@@ -135,83 +232,117 @@ pytest tests/
 
 # Tests específicos
 pytest tests/test_senial.py -v
+
+# Cobertura
+pytest tests/ --cov=dominio_senial --cov-report=html
 ```
 
-### Ejemplo de Test
+### Tests LSP Incluidos
 
 ```python
-def test_senial_basica():
-    """Test de la funcionalidad básica de Senial"""
-    senial = Senial()
+def test_constructores_uniformes():
+    """✅ Todos los constructores funcionan sin parámetros"""
+    lista = SenialLista()
+    pila = SenialPila()
+    cola = SenialCola()  # v4.0.0: ahora con parámetro opcional
 
-    # Test señal vacía
-    assert senial.esta_vacia() is True
-    assert senial.obtener_tamanio() == 0
+    assert all(isinstance(s, SenialBase) for s in [lista, pila, cola])
 
-    # Test agregar valores
-    senial.poner_valor(1.5)
-    senial.poner_valor(2.0)
+def test_firmas_consistentes():
+    """✅ sacar_valor() sin parámetros en todas"""
+    señales = [SenialLista(), SenialPila(), SenialCola()]
 
-    assert senial.esta_vacia() is False
-    assert senial.obtener_tamanio() == 2
-    assert senial.obtener_valor(0) == 1.5
-    assert senial.obtener_valor(1) == 2.0
+    for senial in señales:
+        senial.poner_valor(100.0)
+        valor = senial.sacar_valor()  # ✅ Sin parámetros
+        assert valor == 100.0
 ```
 
 ## 🔗 Integración con Otros Paquetes
 
 ```python
-# Ejemplo de como otros paquetes usan el dominio
-from dominio_senial import Senial
+# ✅ v4.0.0: Integración con DIP (Dependency Inversion)
+from dominio_senial import SenialBase
 
 # Paquete adquisicion_senial
 class BaseAdquisidor:
     def __init__(self):
-        self._senial = Senial()  # ✅ Usa entidad del dominio
+        self._senial: SenialBase = None  # ✅ Depende de abstracción
+        # Tipo concreto inyectado por Configurador
 
 # Paquete procesamiento_senial
 class BaseProcesador:
     def __init__(self):
-        self._senial_procesada = Senial()  # ✅ Usa entidad del dominio
+        self._senial: SenialBase = None  # ✅ Depende de abstracción
+        # Tipo concreto inyectado por Configurador
 
 # Paquete presentacion_senial
 class Visualizador:
-    def mostrar_datos(self, senial: Senial):  # ✅ Recibe entidad del dominio
-        # Lógica de visualización
-        pass
+    def mostrar_datos(self, senial: SenialBase):  # ✅ Acepta abstracción
+        # Lógica de visualización polimórfica
+        for i in range(senial.obtener_tamanio()):
+            print(senial.obtener_valor(i))
 ```
 
-## 📈 Métricas de Calidad
+## 📈 Métricas de Calidad v4.0.0
 
 ### Complejidad
-- **Clases**: 1 (`Senial`)
-- **Métodos públicos**: 4
-- **Dependencias**: 0 (solo Python estándar)
-- **Líneas de código**: ~60
+- **Clases**: 4 (`SenialBase`, `SenialLista`, `SenialPila`, `SenialCola`)
+- **Métodos públicos por clase**: 8-10
+- **Dependencias**: 0 (solo Python estándar + `abc` + `typing`)
+- **Líneas de código**: ~420
 
 ### Cobertura de Tests
 - **Cobertura objetivo**: 100%
-- **Casos de prueba**: Funcionalidad básica, casos extremos, validaciones
+- **Tests LSP**: Constructores, firmas, polimorfismo, factory pattern
+- **Tests específicos**: Cada implementación con su semántica
+
+### Métricas LSP
+- **Violaciones LSP**: 0 (antes: 4 críticas)
+- **Intercambiabilidad**: 100% (antes: 0%)
+- **Uso de `isinstance`**: 0 (antes: 1 anti-patrón)
+- **Factory Pattern**: Funcional (antes: roto)
 
 ## 🎓 Valor Didáctico
 
-### Conceptos Demostrados
+### Conceptos Demostrados v4.0.0
 
-1. **Entidades de Dominio**: Objetos que representan conceptos del negocio
-2. **Encapsulación**: Protección de datos internos con interfaz controlada
-3. **Independencia**: Núcleo que no depende de infraestructura
-4. **Estabilidad**: Capa que cambia menos frecuentemente
-5. **Reutilización**: Código que funciona en múltiples contextos
+1. **✅ LSP Aplicado**: Intercambiabilidad polimórfica garantizada
+2. **✅ Abstracción Correcta**: `SenialBase` define contrato robusto
+3. **✅ Contratos Consistentes**: Firmas idénticas en todas las subclases
+4. **✅ Semánticas Específicas**: LIFO vs FIFO respetando el contrato
+5. **✅ Eliminación de Anti-patrones**: Sin `isinstance`, sin alias confusos
+
+### Evolución del Proyecto
+
+| Versión | Estado | Características |
+|---------|--------|-----------------|
+| v1.0.0 | Inicial | Clase `Senial` concreta básica |
+| v2.0.0 | Violaciones | Herencia con violaciones LSP |
+| v3.0.0 | Análisis | Violaciones documentadas |
+| **v4.0.0** | **LSP Completo** | **Abstracción + Implementaciones correctas** |
 
 ### Lecciones Aprendidas
 
-- **Las entidades deben ser simples** pero completas para su dominio
-- **La independencia facilita el testing** y la reutilización
-- **Un buen dominio es la base** para toda la arquitectura
-- **La estabilidad del dominio** reduce el impacto de cambios
+- **Las abstracciones deben definir contratos claros** con métodos abstractos
+- **Firmas consistentes son esenciales** para intercambiabilidad
+- **Semánticas diferentes no violan LSP** si respetan el contrato
+- **Eliminar alias confusos** mejora la claridad arquitectural
+- **Testing genérico valida LSP** - un test funciona con todas las implementaciones
+
+## 📚 Documentación Relacionada
+
+- **`docs/VIOLACIONES DE LSP EN TIPOS DE SEÑAL.md`** - Análisis de problemas (versión anterior)
+- **`docs/SOLUCION LSP CON ABSTRACCIONES.md`** - Solución completa v4.0.0 ⭐
+
+## 🔄 Próximos Pasos
+
+- **ISP**: Interfaces específicas por responsabilidad
+- **Más implementaciones**: SenialDeque, SenialBuffer, etc.
+- **Persistencia**: Serialización/deserialización de señales
 
 ---
 
-**🏠 Paquete Dominio - Victor Valotto**
+**🏠 Paquete Dominio v4.0.0 - Victor Valotto**
 **📖 Proyecto Didáctico**: Demostración de Clean Architecture y SOLID
-**🎯 Núcleo Estable**: Base para toda la aplicación de señales digitales
+**✅ LSP Completo**: Intercambiabilidad polimórfica garantizada
