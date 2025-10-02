@@ -1,6 +1,8 @@
 # Lanzador - Orquestador del Sistema
 
-Paquete orquestador que coordina todo el flujo de procesamiento de señales digitales.
+**Versión**: 5.2.0
+**Patrón**: Orquestador/Coordinador
+**Responsabilidad**: Orquestar flujo de procesamiento de señales
 
 ## 📋 Descripción
 
@@ -9,6 +11,55 @@ Este paquete implementa la **responsabilidad de orquestación** en la arquitectu
 ## 🎯 Responsabilidad Única (SRP)
 
 **Una única razón para cambiar**: Modificaciones en el flujo de orquestación del sistema completo.
+
+### ✅ Lo que SÍ hace:
+- Orquestar flujo: Adquisición → Procesamiento → Persistencia → Visualización
+- Coordinar interacción entre componentes
+- Mostrar progreso y resultados del procesamiento
+
+### ❌ Lo que NO hace:
+- Decidir QUÉ adquisidor usar (→ Configurador)
+- Decidir QUÉ procesador usar (→ Configurador)
+- Contener lógica de negocio (→ Componentes específicos)
+- Implementar persistencia (→ Repositorio/Contexto)
+
+## 🏗️ Arquitectura - Versión 5.2
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         LANZADOR                            │
+│                  (Orquestador - SRP Puro)                   │
+│                                                             │
+│  ┌─────────────┐  ┌─────────────┐  ┌──────────────────┐   │
+│  │ Adquisidor  │  │ Procesador  │  │  Visualizador    │   │
+│  └─────────────┘  └─────────────┘  └──────────────────┘   │
+│                                                             │
+│  ┌─────────────────────────────────────────────────┐       │
+│  │           PATRÓN REPOSITORY (v5.2)              │       │
+│  │  ┌──────────────────┐  ┌──────────────────┐    │       │
+│  │  │ Repositorio      │  │ Repositorio      │    │       │
+│  │  │ Adquisición      │  │ Procesamiento    │    │       │
+│  │  └──────────────────┘  └──────────────────┘    │       │
+│  │          ▼                      ▼               │       │
+│  │  ┌──────────────────┐  ┌──────────────────┐    │       │
+│  │  │ ContextoArchivo  │  │ ContextoPickle   │    │       │
+│  │  │ (texto .dat)     │  │ (binario .pickle)│    │       │
+│  │  └──────────────────┘  └──────────────────┘    │       │
+│  └─────────────────────────────────────────────────┘       │
+│                                                             │
+│              ▲                                              │
+│              │  Delegación (Factory Pattern)               │
+│              │                                              │
+│  ┌───────────┴──────────────────────────────────────┐      │
+│  │              CONFIGURADOR                         │      │
+│  │  - crear_adquisidor()                             │      │
+│  │  - crear_procesador()                             │      │
+│  │  - crear_visualizador()                           │      │
+│  │  - crear_repositorio_adquisicion()                │      │
+│  │  - crear_repositorio_procesamiento()              │      │
+│  └───────────────────────────────────────────────────┘      │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ## 📦 Contenido
 
@@ -19,12 +70,17 @@ lanzador/
 ├── __init__.py          # Exporta la clase Lanzador y función ejecutar
 ├── lanzador.py          # Módulo con la clase Lanzador
 ├── setup.py            # Configuración del paquete
-└── tests/              # Tests unitarios
+└── README.md           # Este archivo
 ```
 
-### Clases Principales
+### Clase Principal
 
-- **`Lanzador`** (en `lanzador.py`): Clase responsable de orquestar el proceso completo: adquisición → procesamiento → presentación.
+**`Lanzador`** (en `lanzador.py`): Orquestador que coordina:
+1. Adquisición de señales
+2. Procesamiento de señales
+3. Persistencia con Patrón Repository (v5.2+)
+4. Recuperación desde repositorios
+5. Visualización de resultados
 
 ## 🚀 Instalación
 
@@ -32,16 +88,13 @@ lanzador/
 pip install lanzador
 ```
 
-## 💻 Uso Básico
+## 💻 Uso
 
-### Como Script
+### Como Script de Consola
 
 ```bash
-# Ejecutar con configuración por defecto (5 muestras)
+# Ejecutar lanzador con configuración por defecto
 lanzador
-
-# Ejecutar con número específico de muestras
-lanzador 10
 ```
 
 ### Como Módulo Python
@@ -49,52 +102,189 @@ lanzador 10
 ```python
 from lanzador import Lanzador
 
-# Crear y ejecutar el orquestador
-lanzador = Lanzador()
-lanzador.ejecutar_proceso_completo()
-
-# Configurar número de muestras
-lanzador.configurar_muestras(8)
-lanzador.ejecutar_proceso_completo()
+# Ejecutar flujo completo
+Lanzador.ejecutar()
 ```
 
-## 🏗️ Arquitectura
+## 📊 Flujo de Ejecución (v5.2)
 
-Este paquete representa el **orquestador principal** en Clean Architecture:
+### Paso 1: Adquisición
+```python
+# Obtener adquisidor configurado
+adquisidor = Configurador.crear_adquisidor()
+repo_adquisicion = Configurador.crear_repositorio_adquisicion()
 
-```
-┌─────────────────┐    ┌─────────────────┐
-│                 │───▶│ adquisicion_    │
-│                 │    │ senial          │
-│                 │    └─────────────────┘
-│                 │    ┌─────────────────┐
-│ lanzador        │───▶│ procesamiento_  │
-│                 │    │ senial          │
-│                 │    └─────────────────┘
-│                 │    ┌─────────────────┐
-│                 │───▶│ presentacion_   │
-│                 │    │ senial          │
-└─────────────────┘    └─────────────────┘
+# Adquirir señal
+adquisidor.leer_senial()
+senial_original = adquisidor.obtener_senial_adquirida()
+
+# Persistir con API de dominio
+senial_original.id = 1000
+repo_adquisicion.guardar(senial_original)  # Repository Pattern
 ```
 
-## 📈 Características
+### Paso 2: Procesamiento
+```python
+# Obtener procesador configurado
+procesador = Configurador.crear_procesador()
+repo_procesamiento = Configurador.crear_repositorio_procesamiento()
 
-- ✅ **Orquestación completa**: Coordina todo el flujo del sistema
-- ✅ **Manejo de errores**: Gestión robusta de excepciones
-- ✅ **Configuración flexible**: Permite ajustar parámetros del procesamiento
-- ✅ **Interfaz amigable**: Información clara del progreso y estado
+# Procesar señal
+procesador.procesar(senial_original)
+senial_procesada = procesador.obtener_senial_procesada()
+
+# Persistir con API de dominio
+senial_procesada.id = 2000
+repo_procesamiento.guardar(senial_procesada)  # Repository Pattern
+```
+
+### Paso 3: Recuperación desde Repositorios (v5.2+)
+```python
+# Recuperar señales persistidas
+senial_original_recuperada = repo_adquisicion.obtener("1000")
+senial_procesada_recuperada = repo_procesamiento.obtener("2000")
+
+# Las señales se reconstruyen automáticamente:
+# - ContextoArchivo: Lee .dat + .meta y reconstruye objeto
+# - ContextoPickle: Deserializa directamente desde .pickle
+```
+
+### Paso 4: Visualización
+```python
+# Obtener visualizador configurado
+visualizador = Configurador.crear_visualizador()
+
+# Visualizar señales recuperadas desde archivos
+visualizador.mostrar_datos(senial_original_recuperada)
+visualizador.mostrar_datos(senial_procesada_recuperada)
+```
+
+## ✅ Principios SOLID Demostrados
+
+### SRP (Single Responsibility Principle)
+- **Lanzador**: SOLO orquestar el flujo
+- **Configurador**: SOLO crear y configurar objetos
+- **Repositorio**: SOLO lógica de dominio de persistencia
+- **Contexto**: SOLO implementación técnica de persistencia
+
+### OCP (Open/Closed Principle)
+- Extensible para nuevos procesadores sin modificar lanzador
+- Extensible para nuevos contextos de persistencia sin modificar lanzador
+
+### LSP (Liskov Substitution Principle)
+✅ **RESUELTO**: Tipos de señal intercambiables (SenialBase aplicado)
+- Cualquier subtipo de `SenialBase` funciona en el sistema
+- `SenialLista`, `SenialPila`, `SenialCola` intercambiables
+
+### ISP (Interface Segregation Principle)
+⚠️ **VIOLACIÓN INTENCIONAL**: Contextos con interfaz "gorda"
+- `BaseContexto` mezcla persistir + recuperar
+- Fines didácticos - Corrección planificada
+
+### DIP (Dependency Inversion Principle)
+✅ **APLICADO**:
+- Lanzador depende de abstracciones (obtenidas vía Configurador)
+- Repositorio depende de abstracción `BaseContexto`
+- Contexto inyectado en repositorio vía constructor
+
+## 🔄 Evolución del Lanzador
+
+### v1.0 - Implementación básica
+- Adquisición → Procesamiento → Visualización
+
+### v2.0 - Factory Pattern
+- Separación de creación (Configurador) y orquestación (Lanzador)
+
+### v3.0 - OCP con Abstracciones
+- Procesadores intercambiables vía polimorfismo
+
+### v4.0 - LSP Resuelto
+- `SenialBase` como abstracción común
+- Tipos de señal totalmente intercambiables
+
+### v5.0 - Persistencia con DIP
+- Persistidores inyectados desde Configurador
+
+### v5.2 - Repository Pattern (Actual)
+- Separación dominio (Repositorio) / infraestructura (Contexto)
+- API semántica: `guardar()` / `obtener()` (dominio)
+- Implementación técnica: `persistir()` / `recuperar()` (infraestructura)
+- Reconstrucción automática de señales desde archivos
+
+## 🎯 Patrones de Diseño Aplicados
+
+### 1. Coordinador/Orquestador
+- Lanzador coordina sin tomar decisiones de configuración
+
+### 2. Factory Pattern
+- Configurador centraliza creación de objetos
+
+### 3. Repository Pattern (v5.2+)
+- Repositorio abstrae persistencia del dominio
+- Contexto implementa estrategia de almacenamiento
+- DIP aplicado: Repositorio(contexto)
+
+### 4. Strategy Pattern
+- `ContextoPickle` vs `ContextoArchivo`
+- Intercambiables sin modificar repositorio
 
 ## 🔗 Dependencias
 
-- `dominio-senial`: Entidades fundamentales del dominio
-- `adquisicion-senial`: Captura de datos de entrada
-- `procesamiento-senial`: Algoritmos de transformación
-- `presentacion-senial`: Visualización de resultados
+```python
+install_requires=[
+    "dominio-senial>=4.0.0",         # Entidades base (SenialBase)
+    "adquisicion-senial>=2.1.0",     # Captura de datos
+    "procesamiento-senial>=2.1.0",   # Transformación de señales
+    "presentacion-senial>=2.0.0",    # Visualización
+    "configurador>=2.3.0",           # Factory con Repository Pattern
+    "persistidor-senial>=1.0.0",     # Repository + Contextos
+]
+```
 
-## 📝 Licencia
+## 📚 Documentación Relacionada
 
-MIT License - Ver archivo LICENSE para detalles.
+- **Patrón Repository**: `docs/PATRON REPOSITORY EN PERSISTENCIA.md`
+- **Solución LSP**: `docs/SOLUCION LSP CON ABSTRACCIONES.md`
+- **Implementación OCP**: `docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md`
+- **SRP en Paquetes**: `docs/IMPLEMETACION DE SRP EN PAQUETES.md`
+- **Configurador Factory**: `docs/INCORPORACION DEL CONFIGURADOR CON FACTORY PATTERN.md`
 
-## 👥 Contribución
+## 📝 Ejemplo Completo
 
-Este es un proyecto educativo que demuestra la aplicación de principios SOLID.
+```python
+#!/usr/bin/env python3
+from lanzador import Lanzador
+
+# Ejecutar sistema completo
+# - Adquiere señal desde usuario
+# - Procesa con algoritmo configurado
+# - Persiste en repositorios (archivo + pickle)
+# - Recupera desde repositorios
+# - Visualiza señales recuperadas
+Lanzador.ejecutar()
+```
+
+## 📋 Resumen de Cambios v5.2
+
+### Agregado
+- ✅ Patrón Repository para persistencia
+- ✅ Recuperación desde repositorios antes de visualizar
+- ✅ API semántica de dominio (`guardar()` / `obtener()`)
+- ✅ Reconstrucción automática de señales
+
+### Modificado
+- 🔄 Persistencia: De API técnica (`persistir()`) a API de dominio (`guardar()`)
+- 🔄 Recuperación: De API técnica (`recuperar()`) a API de dominio (`obtener()`)
+- 🔄 Visualización: Ahora usa señales recuperadas desde archivos
+
+### Mantenido
+- ✅ SRP: Lanzador sigue teniendo una única responsabilidad (orquestar)
+- ✅ OCP: Sin modificaciones al agregar nuevos contextos
+- ✅ LSP: Tipos de señal totalmente intercambiables
+- ✅ DIP: Dependencias inyectadas vía Configurador
+
+---
+
+**📖 Paquete Didáctico - Victor Valotto**
+**🎯 Objetivo**: Demostración completa de principios SOLID
+**🔄 Estado v5.2.0**: Repository Pattern + SOLID completo

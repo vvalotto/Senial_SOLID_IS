@@ -1,9 +1,12 @@
+"""
+Setup para el paquete persistidor_senial
+"""
 from setuptools import setup, find_packages
 
 setup(
-    name="lanzador",
-    version="5.2.0",
-    description="Orquestador con Repository Pattern - Demostración completa SOLID (SRP + OCP + LSP + ISP + DIP)",
+    name="persistidor-senial",
+    version="1.0.0",
+    description="Repository Pattern con Strategy para persistencia - Demostración SOLID (SRP + OCP + LSP + DIP) + violaciones ISP intencionales",
     author="Victor Valotto",
     author_email="vvalotto@gmail.com",
     url="https://github.com/vvalotto/Senial_SOLID_IS",
@@ -12,20 +15,11 @@ setup(
     python_requires=">=3.8",
     install_requires=[
         "dominio-senial>=4.0.0",
-        "adquisicion-senial>=2.1.0",
-        "procesamiento-senial>=2.1.0",
-        "presentacion-senial>=2.0.0",
-        "configurador>=2.3.0",
-        "persistidor-senial>=1.0.0",
     ],
-    entry_points={
-        "console_scripts": [
-            "lanzador=lanzador.lanzador:ejecutar",
-        ],
-    },
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Education",
+        "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
@@ -33,8 +27,14 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Topic :: Education",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    keywords="solid principles, repository pattern, orchestrator, signal processing, education",
+    keywords="solid principles, repository pattern, strategy pattern, ISP, DIP, persistence, signal processing, education",
+    project_urls={
+        "Bug Reports": "https://github.com/vvalotto/Senial_SOLID_IS/issues",
+        "Source": "https://github.com/vvalotto/Senial_SOLID_IS",
+        "Documentation": "https://github.com/vvalotto/Senial_SOLID_IS/blob/main/README.md",
+    },
 )

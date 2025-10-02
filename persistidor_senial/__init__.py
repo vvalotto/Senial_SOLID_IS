@@ -30,13 +30,28 @@ Autor: Victor Valotto
 __author__ = 'Victor Valotto'
 __version__ = '1.0.0'
 
-from persistidor_senial.persistidor import BasePersistidor, PersistidorPickle, PersistidorArchivo
+from persistidor_senial.contexto import BaseContexto, ContextoPickle, ContextoArchivo
+from persistidor_senial.repositorio import BaseRepositorio, RepositorioSenial, RepositorioUsuario
 from persistidor_senial.mapeador import Mapeador, MapeadorArchivo
 
+# Alias de compatibilidad con código legacy (deprecados)
+BasePersistidor = BaseContexto
+PersistidorPickle = ContextoPickle
+PersistidorArchivo = ContextoArchivo
+
 __all__ = [
+    # Nuevas clases - Patrón Repository
+    'BaseContexto',
+    'ContextoPickle',
+    'ContextoArchivo',
+    'BaseRepositorio',
+    'RepositorioSenial',
+    'RepositorioUsuario',
+    # Mapeadores
+    'Mapeador',
+    'MapeadorArchivo',
+    # Alias de compatibilidad (deprecados)
     'BasePersistidor',
     'PersistidorPickle',
     'PersistidorArchivo',
-    'Mapeador',
-    'MapeadorArchivo',
 ]

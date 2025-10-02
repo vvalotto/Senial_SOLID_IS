@@ -24,7 +24,13 @@ from adquisicion_senial import AdquisidorConsola, AdquisidorArchivo
 from procesamiento_senial import ProcesadorAmplificador, ProcesadorConUmbral
 from presentacion_senial import Visualizador
 from dominio_senial import SenialLista, SenialPila, SenialCola
-from persistidor_senial import PersistidorPickle, PersistidorArchivo
+from persistidor_senial import (
+    # API Legacy (deprecada - mantener compatibilidad)
+    PersistidorPickle, PersistidorArchivo,
+    # API Nueva - Patrón Repository
+    BaseContexto, ContextoPickle, ContextoArchivo,
+    BaseRepositorio, RepositorioSenial, RepositorioUsuario
+)
 
 
 class Configurador:
@@ -408,3 +414,183 @@ class Configurador:
         """
         recurso = './datos_persistidos/procesamiento'
         return PersistidorPickle(recurso)
+
+    # =========================================================================
+    # 🆕 FACTORY METHODS - PATRÓN REPOSITORY (API Nueva)
+    # =========================================================================
+
+    @staticmethod
+    def definir_contexto(recurso: str, tipo: str = 'pickle'):
+        """
+        🏭 FACTORY METHOD - Crea contexto de persistencia.
+
+        📖 CONFIGURACIÓN "DE FÁBRICA":
+        Decide el formato de persistencia según el parámetro 'tipo'.
+
+        🎯 ESTRATEGIA:
+        - 'pickle': Binario rápido, eficiente (ContextoPickle)
+        - 'archivo': Texto plano human-readable (ContextoArchivo)
+
+        ⚠️ VIOLACIÓN ISP:
+        El contexto tiene métodos persistir() y recuperar() en la misma interfaz,
+        forzando a los clientes a depender de métodos que pueden no necesitar.
+
+        🔄 INYECCIÓN DE DEPENDENCIAS:
+        Este método crea el contexto que será inyectado en el repositorio,
+        aplicando el principio DIP (Dependency Inversion Principle).
+
+        🧪 CASOS DE USO:
+        ```python
+        # Contexto binario para producción (rápido)
+        ctx = Configurador.definir_contexto('./datos', 'pickle')
+
+        # Contexto texto para debugging (human-readable)
+        ctx = Configurador.definir_contexto('./datos', 'archivo')
+        ```
+
+        :param recurso: Path del directorio de persistencia
+        :param tipo: Tipo de contexto ('pickle' o 'archivo')
+        :return: Contexto configurado
+        :rtype: BaseContexto
+        :raises ValueError: Si el tipo no es 'pickle' o 'archivo'
+        """
+        if tipo == 'pickle':
+            return ContextoPickle(recurso)
+        elif tipo == 'archivo':
+            return ContextoArchivo(recurso)
+        else:
+            raise ValueError(
+                f"Tipo de contexto no soportado: '{tipo}'. "
+                f"Valores válidos: 'pickle', 'archivo'"
+            )
+
+    @staticmethod
+    def definir_repositorio(contexto, tipo_entidad: str = 'senial'):
+        """
+        🏭 FACTORY METHOD - Crea repositorio con contexto inyectado.
+
+        📖 DIP APLICADO:
+        El repositorio recibe el contexto como dependencia externa,
+        permitiendo cambiar el formato de persistencia sin modificar
+        la lógica de dominio.
+
+        🎯 ESTRATEGIA:
+        - 'senial': RepositorioSenial (gestión de señales digitales)
+        - 'usuario': RepositorioUsuario (gestión de usuarios - futuro)
+
+        ✅ VENTAJAS DEL PATRÓN REPOSITORY:
+        - Abstrae la persistencia del dominio
+        - API semántica: guardar() / obtener() vs persistir() / recuperar()
+        - Centraliza lógica de acceso a datos
+        - Facilita testing con mocks
+
+        🔄 SEPARACIÓN DE RESPONSABILIDADES:
+        - Repositorio: QUÉ entidades se persisten (dominio)
+        - Contexto: CÓMO se persisten (infraestructura)
+
+        🧪 CASOS DE USO:
+        ```python
+        # Crear repositorio con contexto inyectado
+        ctx = Configurador.definir_contexto('./datos', 'pickle')
+        repo = Configurador.definir_repositorio(ctx, 'senial')
+
+        # Usar API de repositorio
+        repo.guardar(señal)
+        señal = repo.obtener(SenialLista(), '123')
+        ```
+
+        :param contexto: Contexto de persistencia (BaseContexto)
+        :param tipo_entidad: Tipo de entidad ('senial' o 'usuario')
+        :return: Repositorio configurado
+        :rtype: BaseRepositorio
+        :raises ValueError: Si el tipo_entidad no está soportado
+        """
+        if tipo_entidad == 'senial':
+            return RepositorioSenial(contexto)
+        elif tipo_entidad == 'usuario':
+            return RepositorioUsuario(contexto)
+        else:
+            raise ValueError(
+                f"Tipo de entidad no soportado: '{tipo_entidad}'. "
+                f"Valores válidos: 'senial', 'usuario'"
+            )
+
+    @staticmethod
+    def crear_repositorio_adquisicion():
+        """
+        🏭 FACTORY METHOD ALTO NIVEL - Repositorio para señales adquiridas.
+
+        📖 CONFIGURACIÓN COMPLETA:
+        Crea repositorio con contexto pre-configurado para fase de adquisición.
+
+        🎯 DECISIONES "DE FÁBRICA":
+        - Contexto: Archivo de texto plano (human-readable para debugging)
+        - Directorio: './datos_persistidos/adquisicion'
+        - Entidad: Señal digital
+        - Formato archivo: .dat con metadatos de clase
+
+        ✅ CARACTERÍSTICAS:
+        - Reconstrucción automática (lee metadatos __class__)
+        - Formato inspectionable en editor de texto
+        - Ideal para verificar datos raw adquiridos
+
+        🔄 PATRÓN REPOSITORY + DIP:
+        Este método encapsula la composición completa:
+        1. Crea contexto (infraestructura)
+        2. Inyecta en repositorio (dominio)
+        3. Retorna abstracción de alto nivel
+
+        ⚠️ VIOLACIÓN ISP HEREDADA:
+        El repositorio usa contexto con interfaz "gorda" (persistir + recuperar).
+
+        🧪 USO EN LANZADOR:
+        ```python
+        repo = Configurador.crear_repositorio_adquisicion()
+        repo.guardar(señal_adquirida)
+        ```
+
+        :return: Repositorio configurado para señales adquiridas
+        :rtype: RepositorioSenial
+        """
+        ctx = Configurador.definir_contexto('./datos_persistidos/adquisicion', 'archivo')
+        return Configurador.definir_repositorio(ctx, 'senial')
+
+    @staticmethod
+    def crear_repositorio_procesamiento():
+        """
+        🏭 FACTORY METHOD ALTO NIVEL - Repositorio para señales procesadas.
+
+        📖 CONFIGURACIÓN COMPLETA:
+        Crea repositorio con contexto pre-configurado para fase de procesamiento.
+
+        🎯 DECISIONES "DE FÁBRICA":
+        - Contexto: Pickle binario (serialización rápida)
+        - Directorio: './datos_persistidos/procesamiento'
+        - Entidad: Señal digital procesada
+        - Formato archivo: .pickle (binario eficiente)
+
+        ✅ CARACTERÍSTICAS:
+        - Serialización/deserialización automática completa
+        - Alta velocidad de lectura/escritura
+        - Preserva estructura completa de objetos Python
+
+        🔄 PATRÓN REPOSITORY + DIP:
+        Este método encapsula la composición completa:
+        1. Crea contexto (infraestructura)
+        2. Inyecta en repositorio (dominio)
+        3. Retorna abstracción de alto nivel
+
+        ⚠️ VIOLACIÓN ISP HEREDADA:
+        El repositorio usa contexto con interfaz "gorda" (persistir + recuperar).
+
+        🧪 USO EN LANZADOR:
+        ```python
+        repo = Configurador.crear_repositorio_procesamiento()
+        repo.guardar(señal_procesada)
+        ```
+
+        :return: Repositorio configurado para señales procesadas
+        :rtype: RepositorioSenial
+        """
+        ctx = Configurador.definir_contexto('./datos_persistidos/procesamiento', 'pickle')
+        return Configurador.definir_repositorio(ctx, 'senial')
