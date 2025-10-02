@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name="procesamiento-senial",
-    version="1.0.0",
-    description="Procesamiento y transformación de señales digitales",
+    version="2.1.0",
+    description="Procesamiento polimórfico de señales con soporte para SenialBase",
     author="Victor Valotto",
     author_email="vvalotto@gmail.com",
     url="https://github.com/vvalotto/Senial_SOLID_IS",
@@ -11,7 +11,7 @@ setup(
     packages=find_packages(),
     python_requires=">=3.8",
     install_requires=[
-        "dominio-senial>=1.0.0",
+        "dominio-senial>=4.0.0",
     ],
     classifiers=[
         "Development Status :: 4 - Beta",

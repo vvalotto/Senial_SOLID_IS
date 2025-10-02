@@ -11,8 +11,8 @@ else:
 
 setup(
     name="adquisicion-senial",
-    version="1.0.0",
-    description="Adquisición de datos para procesamiento de señales digitales",
+    version="2.1.0",
+    description="Adquisición de datos con soporte polimórfico para SenialBase",
     long_description=README,
     long_description_content_type="text/markdown",
     author="Victor Valotto",
@@ -22,7 +22,7 @@ setup(
     packages=find_packages(),
     python_requires=">=3.8",
     install_requires=[
-        "dominio-senial>=1.0.0",
+        "dominio-senial>=4.0.0",
     ],
     classifiers=[
         "Development Status :: 4 - Beta",
