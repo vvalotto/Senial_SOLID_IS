@@ -5,15 +5,16 @@ from setuptools import setup, find_packages
 
 setup(
     name="configurador",
-    version="2.1.1",
-    description="Factory centralizado con inyección de dependencias - SRP + DIP aplicados",
+    version="2.2.0",
+    description="Factory centralizado con persistencia integrada - SRP + DIP aplicados, preparado para ISP",
     author="Victor Valotto",
     packages=find_packages(),
     install_requires=[
         "dominio-senial>=4.0.0",
         "adquisicion-senial>=2.1.0",
         "procesamiento-senial>=2.1.0",
-        "presentacion-senial>=2.0.0"
+        "presentacion-senial>=2.0.0",
+        "persistidor-senial>=1.0.0"
     ],
     python_requires=">=3.6",
     classifiers=[

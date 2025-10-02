@@ -57,6 +57,8 @@ class SenialBase(ABC):
         self._fecha_adquisicion: Any = None
         self._cantidad: int = 0
         self._tamanio: int = tamanio
+        self._comentario: str = ''
+        self._id: int = 0
 
     # ==================== PROPIEDADES ====================
 
@@ -78,6 +80,24 @@ class SenialBase(ABC):
     def tamanio(self) -> int:
         """Tamaño máximo de la señal."""
         return self._tamanio
+
+    @property
+    def comentario(self) -> str:
+        """Comentario descriptivo de la señal."""
+        return self._comentario
+
+    @comentario.setter
+    def comentario(self, valor: str) -> None:
+        self._comentario = valor
+
+    @property
+    def id(self) -> int:
+        """Identificador único de la señal."""
+        return self._id
+
+    @id.setter
+    def id(self, valor: int) -> None:
+        self._id = valor
 
     # ==================== MÉTODOS ABSTRACTOS ====================
 

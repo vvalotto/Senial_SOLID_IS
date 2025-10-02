@@ -128,3 +128,6 @@ test_*/
 
 # Cleanup script artifacts
 cleanup_build_artifacts.py
+
+# Datos persistidos (generados por la aplicación)
+datos_persistidos/

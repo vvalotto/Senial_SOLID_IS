@@ -17,13 +17,14 @@ para separar completamente las responsabilidades de CREACIÓN y ORQUESTACIÓN.
 Factory Centralizado con decisiones "de fábrica" - sin input del usuario,
 permitiendo que el Lanzador se enfoque SOLO en orquestación.
 
-Versión: 2.1.1 - SRP Puro con Factory Centralizado + Inyección de Señales
+Versión: 2.2.0 - SRP Puro + Persistencia integrada (preparado para ISP)
 Autor: Victor Valotto
 """
 from adquisicion_senial import AdquisidorConsola, AdquisidorArchivo
 from procesamiento_senial import ProcesadorAmplificador, ProcesadorConUmbral
 from presentacion_senial import Visualizador
 from dominio_senial import SenialLista, SenialPila, SenialCola
+from persistidor_senial import PersistidorPickle, PersistidorArchivo
 
 
 class Configurador:
@@ -50,10 +51,25 @@ class Configurador:
     - Procesadores: crear_senial_procesador()
     Permitiendo experimentos LSP sofisticados con tipos mixtos.
 
+    💾 PERSISTENCIA INTEGRADA (v2.2.0):
+    Factory methods para persistidores con violaciones ISP intencionales:
+    - crear_persistidor() → PersistidorPickle (genérico)
+    - crear_persistidor_adquisidor() → Persistidor para señales adquiridas
+    - crear_persistidor_procesador() → Persistidor para señales procesadas
+    - crear_persistidor_pickle() → Serialización binaria
+    - crear_persistidor_archivo() → Archivos de texto plano
+
+    🔄 INYECCIÓN INDEPENDIENTE DE PERSISTIDORES:
+    Permite configurar estrategias de persistencia diferentes por fase:
+    - Adquisidor puede guardar en formato binario (rápido)
+    - Procesador puede guardar en texto plano (analizable)
+
     🔄 EVOLUCIÓN PLANIFICADA:
-    V2.0: Configuración programática con inyección de señales (ACTUAL)
-    V3.0: Configuración externa (archivos JSON/YAML) - DIP aplicado
-    V4.0: Inyección de dependencias completa - IoC Container
+    V2.0: Configuración programática con inyección de señales
+    V2.2: Persistencia integrada - Preparado para demostración ISP (ACTUAL)
+    V3.0: Aplicación de ISP - Interfaces segregadas
+    V4.0: Configuración externa (archivos JSON/YAML) - DIP aplicado
+    V5.0: Inyección de dependencias completa - IoC Container
     """
 
     @staticmethod
@@ -288,3 +304,107 @@ class Configurador:
         :rtype: Senial
         """
         return Configurador.crear_senial_cola()
+
+    @staticmethod
+    def crear_persistidor_pickle():
+        """
+        🏭 FACTORY METHOD - Crea persistidor basado en pickle (serialización binaria).
+
+        📖 CONFIGURACIÓN "DE FÁBRICA":
+        Persistidor que usa pickle para serialización binaria eficiente.
+        Directorio: './datos_persistidos/adquisicion'
+
+        ✅ CARACTERÍSTICAS:
+        - Serialización rápida y eficiente
+        - Preserva estructura completa del objeto
+        - Formato binario (.pickle)
+
+        ⚠️ VIOLACIÓN ISP:
+        Este persistidor tiene métodos persistir() y recuperar() en la misma interfaz,
+        forzando a los clientes a depender de métodos que pueden no necesitar.
+
+        :return: Instancia configurada de PersistidorPickle
+        :rtype: PersistidorPickle
+        """
+        recurso = './datos_persistidos/adquisicion'
+        return PersistidorPickle(recurso)
+
+    @staticmethod
+    def crear_persistidor_archivo():
+        """
+        🏭 FACTORY METHOD - Crea persistidor basado en archivos de texto plano.
+
+        📖 CONFIGURACIÓN "DE FÁBRICA":
+        Persistidor que usa formato de texto plano con mapeo custom.
+        Directorio: './datos_persistidos/procesamiento'
+
+        ✅ CARACTERÍSTICAS:
+        - Formato de texto plano (.dat)
+        - Human-readable para debugging
+        - Soporta listas y colecciones
+
+        ⚠️ VIOLACIÓN ISP:
+        Este persistidor tiene métodos persistir() y recuperar() en la misma interfaz,
+        forzando a los clientes a depender de métodos que pueden no necesitar.
+
+        :return: Instancia configurada de PersistidorArchivo
+        :rtype: PersistidorArchivo
+        """
+        recurso = './datos_persistidos/procesamiento'
+        return PersistidorArchivo(recurso)
+
+    @staticmethod
+    def crear_persistidor_adquisidor():
+        """
+        🏭 FACTORY METHOD ESPECÍFICO - Persistidor para señales del adquisidor.
+
+        📖 PROPÓSITO:
+        Permite configurar persistidor específico para guardar señales adquiridas,
+        independientemente del persistidor usado para señales procesadas.
+
+        🎯 INYECCIÓN INDEPENDIENTE:
+        Permite experimentar con diferentes estrategias de persistencia por fase:
+        - Adquisidor puede usar Pickle (rápido)
+        - Procesador puede usar Archivo (human-readable)
+
+        ⚠️ VIOLACIÓN ISP PRESENTE:
+        El persistidor tiene métodos persistir() y recuperar() juntos,
+        aunque el adquisidor solo necesita persistir.
+
+        🧪 ESCENARIOS EXPERIMENTALES:
+        - return Configurador.crear_persistidor_pickle()   # ← Binario rápido
+        - return PersistidorArchivo('./datos_persistidos/adquisicion')  # ← Texto debuggeable
+
+        :return: Persistidor configurado para señales del adquisidor
+        :rtype: PersistidorPickle | PersistidorArchivo
+        """
+        recurso = './datos_persistidos/adquisicion'
+        return PersistidorArchivo(recurso)
+
+    @staticmethod
+    def crear_persistidor_procesador():
+        """
+        🏭 FACTORY METHOD ESPECÍFICO - Persistidor para señales del procesador.
+
+        📖 PROPÓSITO:
+        Permite configurar persistidor específico para guardar señales procesadas,
+        independientemente del persistidor usado para señales adquiridas.
+
+        🎯 INYECCIÓN INDEPENDIENTE:
+        Permite experimentar con diferentes estrategias de persistencia por fase:
+        - Señal original: carpeta adquisicion
+        - Señal procesada: carpeta procesamiento
+
+        ⚠️ VIOLACIÓN ISP PRESENTE:
+        El persistidor tiene métodos persistir() y recuperar() juntos,
+        aunque el procesador solo necesita persistir.
+
+        🧪 ESCENARIOS EXPERIMENTALES:
+        - return PersistidorPickle('./datos_persistidos/procesamiento')  # ← Binario
+        - return Configurador.crear_persistidor_archivo()  # ← Texto analizable
+
+        :return: Persistidor configurado para señales del procesador
+        :rtype: PersistidorPickle | PersistidorArchivo
+        """
+        recurso = './datos_persistidos/procesamiento'
+        return PersistidorPickle(recurso)

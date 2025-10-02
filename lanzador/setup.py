@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name="lanzador",
-    version="5.0.0",
-    description="Orquestador puro con SRP - Demostración completa de principios SOLID (SRP + OCP + LSP + DIP)",
+    version="5.1.0",
+    description="Orquestador con persistencia completa - Demostración de principios SOLID (SRP + OCP + LSP + ISP + DIP)",
     author="Victor Valotto",
     author_email="vvalotto@gmail.com",
     url="https://github.com/vvalotto/Senial_SOLID_IS",
@@ -15,7 +15,8 @@ setup(
         "adquisicion-senial>=2.1.0",
         "procesamiento-senial>=2.1.0",
         "presentacion-senial>=2.0.0",
-        "configurador>=2.1.1",
+        "configurador>=2.2.0",
+        "persistidor-senial>=1.0.0",
     ],
     entry_points={
         "console_scripts": [

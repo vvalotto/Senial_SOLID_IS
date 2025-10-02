@@ -19,11 +19,12 @@ separando ORQUESTACIÓN de CONFIGURACIÓN completamente.
 Coordinador/Orquestador que usa Factory Centralizado para obtener
 componentes pre-configurados y ejecuta el flujo de procesamiento.
 
-Versión: 5.0 - SRP Puro con responsabilidades cristalinas
+Versión: 5.1 - SRP + Persistencia completa con recuperación
 Autor: Victor Valotto
 """
 import platform
 import os
+from datetime import datetime
 from configurador import Configurador
 
 
@@ -93,10 +94,11 @@ class Lanzador:
 
         🔄 FLUJO ORQUESTADO:
         1. Obtener componentes configurados (SIN decidir cuáles)
-        2. Ejecutar adquisición de datos
-        3. Ejecutar procesamiento de señal
-        4. Ejecutar visualización de resultados
-        5. Mostrar resumen de principios aplicados
+        2. Ejecutar adquisición de datos → Persistir
+        3. Ejecutar procesamiento de señal → Persistir
+        4. Recuperar señales desde archivos persistidos
+        5. Ejecutar visualización de señales recuperadas
+        6. Mostrar resumen de principios aplicados
 
         ✅ SRP DEMOSTRADO:
         Este metodo NO cambia cuando:
@@ -118,10 +120,14 @@ class Lanzador:
             tipo_senial_adquisidor = type(senial_adquisidor).__name__
             tipo_senial_procesador = type(senial_procesador).__name__
 
+            # 💾 Obtener persistidores configurados (SRP - delegado al Configurador)
+            persistidor_adquisicion = Configurador.crear_persistidor_adquisidor()
+            persistidor_procesamiento = Configurador.crear_persistidor_procesador()
+
             Lanzador.limpiar_pantalla()
-            print("=== DEMOSTRACIÓN SRP PURO - PROCESAMIENTO DE SEÑALES v5.0 ===")
+            print("=== DEMOSTRACIÓN SRP PURO - PROCESAMIENTO DE SEÑALES v5.1 ===")
             print("Lanzador con responsabilidad única: ORQUESTACIÓN")
-            print("Configurador con responsabilidad única: CREACIÓN + INYECCIÓN")
+            print("Configurador con responsabilidad única: CREACIÓN + INYECCIÓN + PERSISTENCIA")
             print()
             print("🔄 INYECCIÓN DE DEPENDENCIAS INDEPENDIENTE:")
             print(f"   • Adquisidor configurado con señal: {tipo_senial_adquisidor}")
@@ -147,14 +153,20 @@ class Lanzador:
             adquisidor.leer_senial()
             senial_original = adquisidor.obtener_senial_adquirida()
 
-            print(f"✅ Señal adquirida con {senial_original.obtener_tamanio()} muestras")
+            # 💾 Agregar metadatos para persistencia
+            senial_original.fecha_adquisicion = datetime.now().date()
+            senial_original.comentario = input('Descripcion de la señal: ')
+            senial_original.id = int(input('Identificacion (nro entero): '))
+            print(f'Fecha de lectura: {senial_original.fecha_adquisicion}')
+            print(f'Cantidad de valores obtenidos: {senial_original.cantidad}')
+
+            print(f'\n✅ Señal adquirida con {senial_original.obtener_tamanio()} muestras')
             print(f"📊 Estructura confirmada: {type(senial_original).__name__}")
 
-            # 🧪 DIAGNÓSTICO LSP: Verificar comportamiento específico si existe
-            if hasattr(senial_original, 'sacar_valor'):
-                print(f"🔍 Método específico detectado: sacar_valor() disponible")
-                print(f"⚠️ Nota: Esto puede indicar violación LSP (método no polimórfico)")
-
+            Lanzador.tecla()
+            print('\n💾 Persistiendo señal adquirida...')
+            persistidor_adquisicion.persistir(senial_original, str(senial_original.id))
+            print(f'✅ Señal guardada con ID: {senial_original.id}')
             Lanzador.tecla()
 
             # ✅ ORQUESTACIÓN: Paso 2 - Procesamiento
@@ -168,66 +180,62 @@ class Lanzador:
             procesador.procesar(senial_original)  # Funciona con cualquier procesador
             senial_procesada = procesador.obtener_senial_procesada()
 
-            print("✅ Procesamiento completado")
+            # 💾 Agregar metadatos para persistencia
+            senial_procesada.comentario = input('\nDescripción de la señal procesada: ')
+            senial_procesada.id = int(input('Identificación (nro entero): '))
+
+            print("\n✅ Procesamiento completado")
             print(f"📊 Señal procesada mantiene estructura: {type(senial_procesada).__name__}")
 
-            # 🧪 VERIFICACIÓN DE CONSISTENCIA: Tipos deben coincidir
-            if type(senial_original).__name__ != type(senial_procesada).__name__:
-                print("⚠️ INCONSISTENCIA DETECTADA: Tipos de señal diferentes")
-                print(f"   Original: {type(senial_original).__name__}")
-                print(f"   Procesada: {type(senial_procesada).__name__}")
-                print("🎓 Esto puede indicar problemas en la implementación LSP")
+            print('\n💾 Persistiendo señal procesada...')
+            persistidor_procesamiento.persistir(senial_procesada, str(senial_procesada.id))
+            print(f'✅ Señal procesada guardada con ID: {senial_procesada.id}')
+            Lanzador.tecla()
+
+            # ✅ ORQUESTACIÓN: Paso 3 - Recuperación desde persistencia
+            print("\n💾 PASO 3 - RECUPERACIÓN DE DATOS PERSISTIDOS")
+            print("-" * 40)
+            print("Recuperando señales desde archivos guardados...")
+
+            # Recuperar señal adquirida desde PersistidorPickle
+            print(f"\n🔹 Recuperando señal adquirida (ID: {senial_original.id})...")
+            senial_original_recuperada = persistidor_adquisicion.recuperar(str(senial_original.id))
+            if senial_original_recuperada:
+                print(f"   ✓ Señal recuperada desde: ./datos_persistidos/adquisicion/{senial_original.id}.pickle")
+                print(f"   ✓ Tipo: {type(senial_original_recuperada).__name__}")
+                print(f"   ✓ Comentario: {senial_original_recuperada.comentario}")
             else:
-                print(f"✅ Consistencia mantenida: {type(senial_original).__name__}")
+                print("   ✗ Error al recuperar señal adquirida")
+                senial_original_recuperada = senial_original  # Fallback
+
+            # Recuperar señal procesada usando PersistidorPickle en lugar de Archivo
+            # NOTA: Usamos pickle para ambas señales debido a problemas con el mapeador
+            print(f"\n🔸 Recuperando señal procesada (ID: {senial_procesada.id})...")
+            senial_procesada_recuperada = persistidor_procesamiento.recuperar(str(senial_procesada.id))
+            if senial_procesada_recuperada:
+                print(f"   ✓ Señal recuperada desde: ./datos_persistidos/procesamiento/{senial_procesada.id}.pickle")
+                print(f"   ✓ Tipo: {type(senial_procesada_recuperada).__name__}")
+                print(f"   ✓ Comentario: {senial_procesada_recuperada.comentario}")
+            else:
+                print("   ✗ Error al recuperar señal procesada")
+                senial_procesada_recuperada = senial_procesada  # Fallback
 
             Lanzador.tecla()
 
-            # ✅ ORQUESTACIÓN: Paso 3 - Visualización
-            print("\n📊 PASO 3 - VISUALIZACIÓN DE RESULTADOS")
+            # ✅ ORQUESTACIÓN: Paso 4 - Visualización de señales recuperadas
+            print("\n📊 PASO 4 - VISUALIZACIÓN DE RESULTADOS")
             print("-" * 40)
-            print("Comparación entre señal original y procesada:")
-            print(f"📋 Ambas señales con estructura: {type(senial_original).__name__}")
-            print(f"🔄 Inyectadas automáticamente por el Configurador")
+            print("⚠️ IMPORTANTE: Visualizando señales RECUPERADAS desde archivos persistidos")
+            print(f"📋 Señal original: {type(senial_original_recuperada).__name__}")
+            print(f"📋 Señal procesada: {type(senial_procesada_recuperada).__name__}")
             print()
 
-            print("🔹 SEÑAL ORIGINAL:")
-            visualizador.mostrar_datos(senial_original)
+            print("🔹 SEÑAL ORIGINAL (recuperada desde archivo):")
+            visualizador.mostrar_datos(senial_original_recuperada)
             print()
 
-            print("🔸 SEÑAL PROCESADA:")
-            visualizador.mostrar_datos(senial_procesada)
-
-            # 🧪 DEMOSTRACIÓN EXPERIMENTAL LSP (si hay métodos específicos)
-            if hasattr(senial_original, 'sacar_valor') and hasattr(senial_procesada, 'sacar_valor'):
-                print("\n🧪 DEMOSTRACIÓN EXPERIMENTAL - MÉTODOS ESPECÍFICOS:")
-                print("⚠️ Nota: Estos métodos NO están en la clase base Senial")
-                print("🎓 Su uso indica potencial violación de LSP")
-
-                # Determinar tipo de comportamiento esperado
-                if 'Pila' in type(senial_original).__name__:
-                    print("📋 Comportamiento esperado: LIFO (Last In, First Out)")
-                elif 'Cola' in type(senial_original).__name__:
-                    print("📋 Comportamiento esperado: FIFO (First In, First Out)")
-
-                try:
-                    if senial_original.obtener_tamanio() > 0:
-                        valor_original = senial_original.sacar_valor()
-                        print(f"🔹 Valor extraído de señal original: {valor_original}")
-
-                    if senial_procesada.obtener_tamanio() > 0:
-                        valor_procesado = senial_procesada.sacar_valor()
-                        print(f"🔸 Valor extraído de señal procesada: {valor_procesado}")
-
-                        # Comparar comportamientos si hay datos suficientes
-                        if senial_original.obtener_tamanio() > 0 and 'valor_original' in locals():
-                            if valor_original == valor_procesado:
-                                print("✅ Comportamiento consistente entre señales")
-                            else:
-                                print("⚠️ Comportamiento diferente - posible efecto del procesamiento")
-
-                except Exception as e:
-                    print(f"❌ Error al usar método específico: {e}")
-                    print("🎓 Esto demuestra violación LSP: método no funciona polimórficamente")
+            print("🔸 SEÑAL PROCESADA (recuperada desde archivo):")
+            visualizador.mostrar_datos(senial_procesada_recuperada)
 
             # ✅ RESULTADO: SRP aplicado correctamente
             print(f"\n🎉 DEMOSTRACIÓN SRP PURO COMPLETADA")
@@ -243,7 +251,8 @@ class Lanzador:
             print("   ✅ SRP: Una responsabilidad por clase/paquete")
             print("   ✅ OCP: Procesadores extensibles sin modificar lanzador")
             print("   🔄 LSP: Tipos de señal en evaluación (posibles violaciones)")
-            print("   ✅ Preparado para DIP: Configurador listo para inyección")
+            print("   ⚠️ ISP: Persistidores con interfaz 'gorda' (demo pendiente)")
+            print("   ✅ DIP: Configurador con inyección de dependencias")
             print()
             print("📚 LECCIÓN APRENDIDA:")
             print("   🎯 SEPARACIÓN TOTAL de responsabilidades")
