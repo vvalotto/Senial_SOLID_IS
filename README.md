@@ -56,6 +56,13 @@ Este proyecto es un caso de estudio didáctico que demuestra la **evolución pro
 - **Solución v4.0.0**: Abstracción `SenialBase` con contrato común, implementaciones `SenialLista`, `SenialPila`, `SenialCola`
 - **Resultado**: ✅ LSP aplicado completamente - 100% intercambiabilidad polimórfica
 
+### 💾 Requerimiento 5: Persistencia y Trazabilidad (ISP)
+
+**Contexto**: Los datos adquiridos y procesados deben ser guardados. Se deben registrar los eventos de adquisición y guardado para tener una trazabilidad.
+- **Desafío ISP**: Interfaces segregadas por responsabilidad específica
+- **Solución**: 🔄 En desarrollo - Interfaces especializadas para persistencia y logging
+- **Objetivo**: Evitar interfaces "gordas" que fuercen a implementar métodos innecesarios
+
 
 ## 🚀 Funcionalidades Implementadas
 
