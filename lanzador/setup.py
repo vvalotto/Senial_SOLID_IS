@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name="lanzador",
-    version="5.3.0",
-    description="Orquestador con Repository Pattern + Auditoría - Demostración SOLID con violación ISP intencional (didáctica)",
+    version="6.0.0",
+    description="Orquestador con Repository Pattern - Demostración completa de SOLID (SRP + OCP + LSP + ISP + DIP) con auditoría interna automática",
     author="Victor Valotto",
     author_email="vvalotto@gmail.com",
     url="https://github.com/vvalotto/Senial_SOLID_IS",
@@ -16,7 +16,8 @@ setup(
         "procesamiento-senial>=2.1.0",
         "presentacion-senial>=2.0.0",
         "configurador>=2.3.0",
-        "persistidor-senial>=1.0.0",
+        "persistidor-senial>=6.0.0",
+        "supervisor>=1.0.0",
     ],
     entry_points={
         "console_scripts": [

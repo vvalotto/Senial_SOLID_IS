@@ -1,34 +1,43 @@
 # Persistidor de Señales - Repository Pattern
 
-**Versión**: 5.3.0
+**Versión**: 6.0.0
 **Autor**: Victor Valotto
-**Objetivo**: Demostración del Repository Pattern + Violación ISP Intencional (Didáctica)
+**Objetivo**: Demostración del Repository Pattern + ISP Correctamente Aplicado
 
 ## 📋 Descripción
 
 Este paquete implementa el **Patrón Repository** para la persistencia de señales digitales, separando claramente la **lógica de dominio** (Repositorio) de la **infraestructura de persistencia** (Contexto).
 
-## 🏗️ Arquitectura - Repository Pattern
+## 🏗️ Arquitectura - Repository Pattern con ISP
 
 ```
+┌──────────────────────────────────────────────────────────────────┐
+│                    PAQUETE SUPERVISOR                            │
+│  ┌────────────────────┐          ┌────────────────────┐          │
+│  │   BaseAuditor      │          │   BaseTrazador     │          │
+│  │  - auditar()       │          │  - trazar()        │          │
+│  └────────────────────┘          └────────────────────┘          │
+└──────────────────────────────────────────────────────────────────┘
+                            │  Herencia múltiple
+                            ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                      CAPA DE DOMINIO                        │
 │  ┌────────────────────────────────────────────────────┐     │
-│  │  BaseRepositorio ⚠️ INTERFAZ "GORDA" (ISP)         │     │
+│  │  BaseRepositorio ✅ INTERFAZ BÁSICA (ISP)          │     │
 │  │  - guardar(entidad) ✅                             │     │
 │  │  - obtener(id_entidad) ✅                          │     │
-│  │  - auditar(entidad, auditoria) ⚠️                  │     │
-│  │  - trazar(entidad, accion, mensaje) ⚠️             │     │
 │  └────────────────────────────────────────────────────┘     │
 │                           ▲                                 │
 │              ┌────────────┴────────────┐                    │
 │              │                         │                    │
-│  ┌───────────┴──────────┐  ┌──────────┴────────────┐       │
-│  │  RepositorioSenial   │  │  RepositorioUsuario   │       │
-│  │  ✅ USA los 4 métodos │  │  ❌ Solo usa 2/4      │       │
-│  │  (señales necesitan  │  │  (usuarios NO         │       │
-│  │   auditoría)         │  │   necesitan auditoría)│       │
-│  └──────────────────────┘  └───────────────────────┘       │
+│  ┌───────────┴──────────────────┐  ┌──────────┴────────────┐
+│  │  RepositorioSenial           │  │  RepositorioUsuario   │
+│  │  (BaseAuditor +              │  │  (BaseRepositorio)    │
+│  │   BaseTrazador +             │  │                       │
+│  │   BaseRepositorio)           │  │  ✅ Solo 2 métodos    │
+│  │  ✅ Implementa 4 métodos     │  │  ✅ Sin stubs         │
+│  │  ✅ Auditoría REAL           │  │  ✅ ISP respetado     │
+│  └──────────────────────────────┘  └───────────────────────┘
 └─────────────────────────────────────────────────────────────┘
                             │
                             │ Inyección (DIP)
@@ -66,23 +75,49 @@ Este paquete implementa el **Patrón Repository** para la persistencia de señal
 - Contextos intercambiables sin afectar la lógica de dominio
 
 ### 4. ISP (Interface Segregation Principle)
-❌ **VIOLACIÓN INTENCIONAL CON FINES DIDÁCTICOS (v5.3.0)**:
+✅ **CORRECTAMENTE APLICADO (v6.0.0)**:
 
-**Problema**: `BaseRepositorio` es una interfaz "gorda" con 4 métodos abstractos:
-- `guardar()` ✅ Todos los repositorios lo necesitan
-- `obtener()` ✅ Todos los repositorios lo necesitan
-- `auditar()` ⚠️ Solo `RepositorioSenial` lo necesita
-- `trazar()` ⚠️ Solo `RepositorioSenial` lo necesita
+**Solución**: Interfaces segregadas según necesidades reales:
+- `BaseRepositorio`: Solo métodos básicos (guardar, obtener) ✅
+- `BaseAuditor` (paquete supervisor): Auditoría segregada ✅
+- `BaseTrazador` (paquete supervisor): Trazabilidad segregada ✅
 
-**Consecuencia**: `RepositorioUsuario` está FORZADO a implementar `auditar()` y `trazar()`:
+**Implementación por herencia múltiple**:
 ```python
-def auditar(self, entidad, auditoria):
-    raise NotImplementedError("RepositorioUsuario no soporta auditoría - Violación ISP")
+from supervisor import BaseAuditor, BaseTrazador
+
+# RepositorioSenial: Necesita auditoría y trazabilidad
+class RepositorioSenial(BaseAuditor, BaseTrazador, BaseRepositorio):
+    def guardar(self, senial):
+        # Implementación REAL con auditoría automática
+        self.auditar(senial, "Antes de hacer la persistencia")
+        self._contexto.persistir(senial, str(senial.id))
+        self.auditar(senial, "Se realizó la persistencia")
+
+    def auditar(self, entidad, auditoria):
+        # Implementación REAL - Escribe en archivo
+        with open('auditor_senial.log', 'a') as f:
+            f.write(f'{entidad}\n{auditoria}\n')
+
+    def trazar(self, entidad, accion, mensaje):
+        # Implementación REAL - Escribe en archivo
+        with open('logger_senial.log', 'a') as f:
+            f.write(f'Acción: {accion}\n{mensaje}\n')
+
+# RepositorioUsuario: Solo necesita persistencia básica
+class RepositorioUsuario(BaseRepositorio):
+    def guardar(self, usuario):
+        # Sin auditoría - Solo persistencia
+        self._contexto.persistir(usuario, str(usuario.id))
+
+    # ✅ NO tiene auditar() ni trazar() - ISP respetado
 ```
 
-**Resultado**: Código frágil que falla en runtime si se intenta usar auditoría en usuarios.
-
-**Corrección planificada**: Segregar en `IRepositorioBasico` + `IRepositorioAuditable`
+**Resultado**:
+- ✅ Cada repositorio solo implementa lo que necesita
+- ✅ No hay métodos stub con NotImplementedError
+- ✅ Código robusto y mantenible
+- ✅ Auditoría y trazabilidad automáticas en guardar()/obtener()
 
 ### 5. DIP (Dependency Inversion Principle)
 ✅ **APLICADO CORRECTAMENTE**:
@@ -94,9 +129,9 @@ def auditar(self, entidad, auditoria):
 ### Repositorios (Capa de Dominio)
 
 #### `BaseRepositorio`
-⚠️ **Interfaz "Gorda" - Violación ISP Intencional**
+✅ **Interfaz Básica - ISP Correctamente Aplicado**
 
-Abstracción que define la interfaz de dominio para persistencia con métodos innecesarios para algunos clientes.
+Abstracción que define la interfaz básica de dominio para persistencia, conteniendo solo los métodos que TODOS los repositorios necesitan.
 
 ```python
 class BaseRepositorio(ABC):
@@ -113,21 +148,15 @@ class BaseRepositorio(ABC):
         """Obtiene una entidad por su identificador"""
         pass
 
-    @abstractmethod
-    def auditar(self, entidad, auditoria):
-        """⚠️ PROBLEMÁTICO - No todos los repositorios necesitan auditoría"""
-        pass
-
-    @abstractmethod
-    def trazar(self, entidad, accion, mensaje):
-        """⚠️ PROBLEMÁTICO - No todos los repositorios necesitan trazabilidad"""
-        pass
+# Interfaces segregadas en paquete supervisor:
+# - BaseAuditor.auditar() ✅ Solo para repositorios que lo necesitan
+# - BaseTrazador.trazar() ✅ Solo para repositorios que lo necesitan
 ```
 
 #### `RepositorioSenial`
-✅ **Repositorio que USA todos los métodos** - Sin problemas ISP
+✅ **Repositorio con Auditoría y Trazabilidad** - Herencia Múltiple
 
-Repositorio específico para gestionar señales con auditoría completa.
+Repositorio específico para gestionar señales con auditoría completa mediante herencia múltiple.
 
 ```python
 from persistidor_senial import RepositorioSenial, ContextoPickle
@@ -138,16 +167,23 @@ contexto = ContextoPickle("./datos")
 # Crear repositorio con contexto inyectado (DIP)
 repo = RepositorioSenial(contexto)
 
-# API de dominio - Todos los métodos funcionan
+# API de dominio - Auditoría automática
 senial.id = 1000
-repo.guardar(senial)  # ✅ Guardar
-senial_recuperada = repo.obtener("1000")  # ✅ Recuperar
-repo.auditar(senial, "Señal procesada correctamente")  # ✅ Auditar
-repo.trazar(senial, "PROCESAMIENTO", "Amplificación x4")  # ✅ Trazar
+repo.guardar(senial)  # ✅ Guardar + Auditoría automática interna
+senial_recuperada = repo.obtener("1000")  # ✅ Recuperar + Auditoría automática
+
+# La auditoría y trazabilidad ocurren AUTOMÁTICAMENTE dentro de guardar()/obtener()
+# No es necesario llamar repo.auditar() o repo.trazar() explícitamente
 ```
 
+**Características**:
+- Herencia múltiple: `BaseAuditor + BaseTrazador + BaseRepositorio`
+- Auditoría automática en cada operación guardar()/obtener()
+- Trazabilidad solo en caso de excepciones
+- Logs escritos en `auditor_senial.log` y `logger_senial.log`
+
 #### `RepositorioUsuario`
-❌ **Repositorio que SUFRE violación ISP** - Métodos innecesarios
+✅ **Repositorio Simple** - ISP Correctamente Aplicado
 
 Repositorio específico para gestionar usuarios (solo persistencia, sin auditoría).
 
@@ -161,10 +197,16 @@ usuario.id = 500
 repo.guardar(usuario)  # ✅ Funciona
 usuario_recuperado = repo.obtener("500")  # ✅ Funciona
 
-# ❌ Estos métodos FALLAN en runtime
-repo.auditar(usuario, "...")  # 💥 NotImplementedError
-repo.trazar(usuario, "LOGIN", "...")  # 💥 NotImplementedError
+# ✅ NO tiene métodos auditar() ni trazar() - ISP respetado
+# hasattr(repo, 'auditar')  # False
+# hasattr(repo, 'trazar')   # False
 ```
+
+**Características**:
+- Solo hereda de `BaseRepositorio` (sin BaseAuditor ni BaseTrazador)
+- Implementa únicamente los 2 métodos que necesita
+- Sin métodos stub o NotImplementedError
+- Código limpio y honesto con su contrato
 
 ### Contextos (Capa de Infraestructura - Strategy Pattern)
 
@@ -371,6 +413,7 @@ repo.guardar(senial)
 ## 🎯 Dependencias
 
 - **dominio-senial** >= 4.0.0 - Entidades `SenialBase` y sus implementaciones
+- **supervisor** >= 1.0.0 - Interfaces segregadas (BaseAuditor, BaseTrazador)
 - **Python** >= 3.8
 
 ## 📚 Casos de Uso
@@ -437,120 +480,116 @@ senial_desde_pickle = repo_binario.obtener("3000")
 senial_desde_texto = repo_texto.obtener("3000")
 ```
 
-## ⚠️ Violación ISP Intencional (Fines Didácticos)
+## ✅ ISP Correctamente Aplicado
 
-### Problema Central: Interfaz "Gorda" en `BaseRepositorio`
+### Solución Implementada: Interfaces Segregadas
 
-**BaseRepositorio** obliga a implementar 4 métodos abstractos, pero NO todos los clientes los necesitan:
+**Principio ISP**: "Los clientes no deberían verse obligados a depender de interfaces que no utilizan"
 
-| Método | RepositorioSenial | RepositorioUsuario | ¿Problema ISP? |
-|--------|-------------------|---------------------|----------------|
-| `guardar()` | ✅ Necesita | ✅ Necesita | ✅ OK |
-| `obtener()` | ✅ Necesita | ✅ Necesita | ✅ OK |
-| `auditar()` | ✅ Necesita | ❌ NO necesita | ⚠️ **VIOLACIÓN ISP** |
-| `trazar()` | ✅ Necesita | ❌ NO necesita | ⚠️ **VIOLACIÓN ISP** |
+### Arquitectura de Interfaces Segregadas
 
-### Consecuencias de la Violación
+| Método | RepositorioSenial | RepositorioUsuario | Interfaz |
+|--------|-------------------|---------------------|----------|
+| `guardar()` | ✅ Necesita | ✅ Necesita | `BaseRepositorio` |
+| `obtener()` | ✅ Necesita | ✅ Necesita | `BaseRepositorio` |
+| `auditar()` | ✅ Necesita | ❌ NO necesita | `BaseAuditor` (supervisor) |
+| `trazar()` | ✅ Necesita | ❌ NO necesita | `BaseTrazador` (supervisor) |
 
-**RepositorioUsuario** está forzado a implementar métodos innecesarios:
+### Implementación con Herencia Múltiple
+
+**RepositorioSenial** implementa las 3 interfaces (porque las necesita):
+
+```python
+from supervisor import BaseAuditor, BaseTrazador
+
+class RepositorioSenial(BaseAuditor, BaseTrazador, BaseRepositorio):
+    def guardar(self, senial):
+        # ✅ Implementación REAL con auditoría
+        self.auditar(senial, "Antes de hacer la persistencia")
+        self._contexto.persistir(senial, str(senial.id))
+        self.auditar(senial, "Se realizó la persistencia")
+
+    def obtener(self, id_senial, entidad=None):
+        # ✅ Implementación REAL con auditoría
+        self.auditar(entidad if entidad else {'id': id_senial}, "Antes de recuperar la señal")
+        resultado = self._contexto.recuperar(id_senial, entidad)
+        self.auditar(resultado, "Se realizó la recuperación")
+        return resultado
+
+    def auditar(self, entidad, auditoria):
+        # ✅ Implementación REAL - Escribe en archivo
+        with open('auditor_senial.log', 'a') as f:
+            f.write(f'------->\n{entidad}\n{datetime.now()}\n{auditoria}\n\n')
+
+    def trazar(self, entidad, accion, mensaje):
+        # ✅ Implementación REAL - Escribe en archivo
+        with open('logger_senial.log', 'a') as f:
+            f.write(f'------->\nAcción: {accion}\n{entidad}\n{datetime.now()}\n{mensaje}\n\n')
+```
+
+**RepositorioUsuario** solo implementa la interfaz básica:
 
 ```python
 class RepositorioUsuario(BaseRepositorio):
     def guardar(self, usuario):
-        # ✅ Implementación REAL
+        # ✅ Implementación REAL - Solo persistencia
         self._contexto.persistir(usuario, str(usuario.id))
 
     def obtener(self, id_usuario, entidad=None):
-        # ✅ Implementación REAL
+        # ✅ Implementación REAL - Solo persistencia
         return self._contexto.recuperar(id_usuario, entidad)
 
-    def auditar(self, entidad, auditoria):
-        # ❌ STUB - Método innecesario
-        raise NotImplementedError("RepositorioUsuario no soporta auditoría")
-
-    def trazar(self, entidad, accion, mensaje):
-        # ❌ STUB - Método innecesario
-        raise NotImplementedError("RepositorioUsuario no soporta trazabilidad")
+    # ✅ NO tiene auditar() ni trazar() - ISP respetado
 ```
 
-### Impacto en Código Cliente
+### Beneficios de la Corrección ISP
 
-```python
-repo_usuario = RepositorioUsuario(contexto)
+**✅ Clientes solo implementan lo que necesitan**:
+- `RepositorioUsuario` no tiene métodos innecesarios
+- No hay stubs con `NotImplementedError`
+- Código honesto con su contrato
 
-# ✅ Métodos que funcionan
-repo_usuario.guardar(usuario)
-usuario_recuperado = repo_usuario.obtener("1")
+**✅ Separación de responsabilidades (SRP)**:
+- `BaseRepositorio`: Persistencia básica
+- `BaseAuditor`: Auditoría especializada
+- `BaseTrazador`: Trazabilidad especializada
 
-# ❌ Métodos que FALLAN en runtime
-repo_usuario.auditar(usuario, "...")  # 💥 NotImplementedError
-repo_usuario.trazar(usuario, "...", "...")  # 💥 NotImplementedError
-```
+**✅ Flexibilidad y extensibilidad**:
+- Fácil crear repositorios con diferentes combinaciones
+- Ejemplo: `RepositorioConfig` solo con `BaseRepositorio`
+- Ejemplo: `RepositorioTransaccion` con `BaseRepositorio + BaseAuditor`
 
-**Problema**: Código frágil que compila pero falla en ejecución.
+**✅ Testabilidad mejorada**:
+- Se pueden hacer mocks de interfaces individuales
+- Tests más enfocados y específicos
 
-### Corrección Planificada (ISP)
-
-Segregar `BaseRepositorio` en interfaces específicas:
-
-```python
-# Interfaz básica - TODOS la necesitan
-class IRepositorioBasico(ABC):
-    @abstractmethod
-    def guardar(self, entidad: Any) -> None:
-        pass
-
-    @abstractmethod
-    def obtener(self, id_entidad: str, entidad: Any = None) -> Any:
-        pass
-
-# Interfaz especializada - SOLO para auditables
-class IRepositorioAuditable(ABC):
-    @abstractmethod
-    def auditar(self, entidad, auditoria):
-        pass
-
-    @abstractmethod
-    def trazar(self, entidad, accion, mensaje):
-        pass
-
-# Composición según necesidades reales
-class RepositorioSenial(IRepositorioBasico, IRepositorioAuditable):
-    # Implementa los 4 métodos - Sin problemas
-    pass
-
-class RepositorioUsuario(IRepositorioBasico):
-    # Solo implementa 2 métodos - ¡Sin stubs innecesarios!
-    pass
-```
-
-**Beneficios**:
-- ✅ Clientes solo implementan lo que realmente necesitan
-- ✅ No hay métodos stub que lancen excepciones
-- ✅ Contratos honestos y respetados
-- ✅ Mayor flexibilidad y mantenibilidad
+**✅ Mantenibilidad**:
+- Cambios en auditoría no afectan repositorios simples
+- Cada interfaz evoluciona independientemente
 
 ### Demostración Interactiva
 
-Ejecutar script de demostración completo:
+Ejecutar script de prueba de corrección ISP:
 
 ```bash
-python demo_violacion_isp.py
+python test_correccion_isp.py
 ```
 
-Este script muestra:
-1. ✅ `RepositorioSenial` usando los 4 métodos exitosamente
-2. ❌ `RepositorioUsuario` fallando al intentar auditar/trazar
-3. 📚 Explicación de la solución ISP correcta
+Este script verifica:
+1. ✅ `RepositorioSenial` funciona con auditoría y trazabilidad automáticas
+2. ✅ `RepositorioUsuario` funciona SIN métodos innecesarios
+3. ✅ Verificación que `RepositorioUsuario` no tiene `auditar()` ni `trazar()`
+4. 📝 Logs generados automáticamente en `auditor_senial.log`
 
-## 🔄 Próximas Mejoras
+## 🔄 Mejoras Futuras
 
-- [ ] Aplicar ISP: Segregar interfaces por responsabilidad
-- [ ] Implementar sistema de trazabilidad dedicado (`IAuditable`)
+- [x] ✅ Aplicar ISP: Interfaces segregadas (v6.0.0)
+- [x] ✅ Sistema de auditoría y trazabilidad segregado (paquete supervisor)
 - [ ] Agregar soporte para transacciones
 - [ ] Implementar caché de entidades
-- [ ] Agregar tests unitarios y de integración
+- [ ] Agregar tests unitarios y de integración completos
 - [ ] Soporte para contextos adicionales (SQL, MongoDB, Cloud Storage)
+- [ ] Implementaciones concretas adicionales de BaseAuditor (consola, base de datos, cloud)
 
 ## 📖 Documentación Relacionada
 
@@ -562,5 +601,5 @@ Este script muestra:
 ---
 
 **📖 Paquete Didáctico - Victor Valotto**
-**🎯 Objetivo**: Demostración de Repository Pattern + violaciones ISP intencionales
-**🔄 Estado v1.0.0**: Funcional con violaciones ISP para fines educativos
+**🎯 Objetivo**: Demostración de Repository Pattern + ISP correctamente aplicado
+**🔄 Estado v6.0.0**: ISP corregido con interfaces segregadas (supervisor package)

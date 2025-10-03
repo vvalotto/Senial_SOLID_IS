@@ -1,8 +1,8 @@
 # Lanzador - Orquestador del Sistema
 
-**Versión**: 5.3.0
+**Versión**: 6.0.0
 **Patrón**: Orquestador/Coordinador
-**Responsabilidad**: Orquestar flujo de procesamiento de señales con auditoría y trazabilidad
+**Responsabilidad**: Orquestar flujo de procesamiento de señales (auditoría automática interna)
 
 ## 📋 Descripción
 
@@ -106,7 +106,7 @@ from lanzador import Lanzador
 Lanzador.ejecutar()
 ```
 
-## 📊 Flujo de Ejecución (v5.2)
+## 📊 Flujo de Ejecución (v6.0.0)
 
 ### Paso 1: Adquisición
 ```python
@@ -122,9 +122,9 @@ senial_original = adquisidor.obtener_senial_adquirida()
 senial_original.id = 1000
 repo_adquisicion.guardar(senial_original)  # Repository Pattern
 
-# 📝 NUEVO v5.3.0: Auditoría y trazabilidad
-repo_adquisicion.auditar(senial_original, "Señal adquirida desde archivo")
-repo_adquisicion.trazar(senial_original, "ADQUISICION", "Lectura completada")
+# ✅ v6.0.0: Auditoría automática INTERNA
+# La auditoría ocurre automáticamente dentro de guardar()
+# No es necesario llamar repo_adquisicion.auditar() explícitamente
 ```
 
 ### Paso 2: Procesamiento
@@ -141,9 +141,9 @@ senial_procesada = procesador.obtener_senial_procesada()
 senial_procesada.id = 2000
 repo_procesamiento.guardar(senial_procesada)  # Repository Pattern
 
-# 📝 NUEVO v5.3.0: Auditoría y trazabilidad
-repo_procesamiento.auditar(senial_procesada, "Señal procesada correctamente")
-repo_procesamiento.trazar(senial_procesada, "PROCESAMIENTO", "Amplificación completada")
+# ✅ v6.0.0: Auditoría automática INTERNA
+# La auditoría ocurre automáticamente dentro de guardar()
+# No es necesario llamar repo_procesamiento.auditar() explícitamente
 ```
 
 ### Paso 3: Recuperación desde Repositorios (v5.2+)
@@ -185,11 +185,13 @@ visualizador.mostrar_datos(senial_procesada_recuperada)
 - `SenialLista`, `SenialPila`, `SenialCola` intercambiables
 
 ### ISP (Interface Segregation Principle)
-❌ **VIOLACIÓN INTENCIONAL (v5.3.0)**: BaseRepositorio con interfaz "gorda"
-- `BaseRepositorio` obliga a implementar 4 métodos: guardar, obtener, auditar, trazar
-- `RepositorioUsuario` forzado a implementar auditar/trazar innecesariamente
-- Implementaciones stub que lanzan `NotImplementedError`
-- Fines didácticos - Corrección planificada: segregar en `IRepositorioBasico` + `IRepositorioAuditable`
+✅ **CORRECTAMENTE APLICADO (v6.0.0)**: Interfaces segregadas
+- `BaseRepositorio`: Solo métodos básicos (guardar, obtener)
+- `BaseAuditor` (paquete supervisor): Auditoría segregada
+- `BaseTrazador` (paquete supervisor): Trazabilidad segregada
+- `RepositorioSenial`: Herencia múltiple (BaseAuditor + BaseTrazador + BaseRepositorio)
+- `RepositorioUsuario`: Solo BaseRepositorio (sin métodos innecesarios)
+- **Lanzador**: NO llama auditar() ni trazar() (auditoría automática interna)
 
 ### DIP (Dependency Inversion Principle)
 ✅ **APLICADO**:
@@ -215,11 +217,21 @@ visualizador.mostrar_datos(senial_procesada_recuperada)
 ### v5.0 - Persistencia con DIP
 - Persistidores inyectados desde Configurador
 
-### v5.2 - Repository Pattern (Actual)
+### v5.2 - Repository Pattern
 - Separación dominio (Repositorio) / infraestructura (Contexto)
 - API semántica: `guardar()` / `obtener()` (dominio)
 - Implementación técnica: `persistir()` / `recuperar()` (infraestructura)
 - Reconstrucción automática de señales desde archivos
+
+### v5.3 - Violación ISP (Didáctica)
+- Violación ISP intencional en `BaseRepositorio`
+- Llamadas explícitas a `auditar()` y `trazar()` desde Lanzador
+
+### v6.0 - ISP Corregido (Actual)
+- Interfaces segregadas: `BaseAuditor` y `BaseTrazador` (paquete supervisor)
+- Auditoría automática INTERNA en repositorio
+- Lanzador cumple SRP: NO llama auditar/trazar explícitamente
+- TODOS los principios SOLID correctamente aplicados
 
 ## 🎯 Patrones de Diseño Aplicados
 
@@ -247,7 +259,8 @@ install_requires=[
     "procesamiento-senial>=2.1.0",   # Transformación de señales
     "presentacion-senial>=2.0.0",    # Visualización
     "configurador>=2.3.0",           # Factory con Repository Pattern
-    "persistidor-senial>=1.0.0",     # Repository + Contextos
+    "persistidor-senial>=6.0.0",     # Repository + Contextos (ISP corregido)
+    "supervisor>=1.0.0",             # Interfaces segregadas (BaseAuditor, BaseTrazador)
 ]
 ```
 
@@ -274,12 +287,23 @@ from lanzador import Lanzador
 Lanzador.ejecutar()
 ```
 
-## 📋 Resumen de Cambios v5.3.0
+## 📋 Resumen de Cambios v6.0.0
+
+### Agregado (v6.0.0)
+- ✅ **ISP Corregido**: Interfaces segregadas (BaseAuditor, BaseTrazador en paquete supervisor)
+- ✅ **Auditoría automática**: Interna al repositorio (no llamadas explícitas)
+- ✅ **SRP mejorado**: Lanzador NO llama auditar() ni trazar()
+- 📦 Dependencia: `supervisor>=1.0.0`
+
+### Modificado (v6.0.0)
+- 🔄 Lanzador simplificado: Eliminadas llamadas explícitas a auditar/trazar
+- 🔄 Mensajes: Indica "Auditoría y trazabilidad: Registradas automáticamente"
+- 🔄 Resumen SOLID: ISP marcado como ✅ (antes ❌)
 
 ### Agregado (v5.3.0)
-- 📝 **Auditoría y trazabilidad**: Llamadas a `auditar()` y `trazar()` para señales
-- 📄 Generación de archivos `auditor.log` y `logger.log`
-- ⚠️ **Violación ISP intencional**: `BaseRepositorio` con interfaz "gorda" (didáctica)
+- 📝 Auditoría y trazabilidad: Llamadas a `auditar()` y `trazar()` para señales (ahora removidas)
+- 📄 Generación de archivos `auditor_senial.log` y `logger_senial.log`
+- ⚠️ Violación ISP intencional: `BaseRepositorio` con interfaz "gorda" (ahora corregida)
 
 ### Agregado (v5.2.0)
 - ✅ Patrón Repository para persistencia
@@ -287,23 +311,15 @@ Lanzador.ejecutar()
 - ✅ API semántica de dominio (`guardar()` / `obtener()`)
 - ✅ Reconstrucción automática de señales
 
-### Modificado
-- 🔄 Persistencia: De API técnica (`persistir()`) a API de dominio (`guardar()`)
-- 🔄 Recuperación: De API técnica (`recuperar()`) a API de dominio (`obtener()`)
-- 🔄 Visualización: Ahora usa señales recuperadas desde archivos
-- 📝 Orquestación: Incluye auditoría y trazabilidad para señales
-
-### Mantenido
-- ✅ SRP: Lanzador sigue teniendo una única responsabilidad (orquestar)
-- ✅ OCP: Sin modificaciones al agregar nuevos contextos
-- ✅ LSP: Tipos de señal totalmente intercambiables
-- ✅ DIP: Dependencias inyectadas vía Configurador
-
-### Violación Didáctica
-- ⚠️ ISP: `BaseRepositorio` obliga a implementar métodos innecesarios (fines educativos)
+### Estado Actual
+- ✅ **SRP**: Lanzador con responsabilidad única (orquestar)
+- ✅ **OCP**: Extensible sin modificación
+- ✅ **LSP**: Tipos de señal totalmente intercambiables
+- ✅ **ISP**: Interfaces segregadas (v6.0.0)
+- ✅ **DIP**: Dependencias inyectadas vía Configurador
 
 ---
 
 **📖 Paquete Didáctico - Victor Valotto**
 **🎯 Objetivo**: Demostración completa de principios SOLID
-**🔄 Estado v5.2.0**: Repository Pattern + SOLID completo
+**🔄 Estado v6.0.0**: TODOS los principios SOLID correctamente aplicados

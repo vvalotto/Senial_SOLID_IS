@@ -2,43 +2,39 @@
 Patrón repositorio: responsable de manejar de manera abstracta la persitencia
 de las entidades
 
-⚠️ VIOLACIÓN ISP INTENCIONAL - PROPÓSITO DIDÁCTICO ⚠️
+⚠️ VERSIÓN CORREGIDA - ISP APLICADO ⚠️
 
-Este módulo contiene una violación deliberada del Interface Segregation Principle
-para demostrar las consecuencias de interfaces "gordas" que obligan a los clientes
-a implementar métodos innecesarios.
+Este módulo contiene la CORRECCIÓN de la violación ISP mediante interfaces segregadas.
 
-📚 VIOLACIÓN DEMOSTRADA:
-BaseRepositorio define 4 métodos abstractos obligatorios:
+📚 SOLUCIÓN ISP APLICADA:
+BaseRepositorio ahora solo define métodos básicos:
 - guardar() ✅ Todos los repositorios lo necesitan
 - obtener() ✅ Todos los repositorios lo necesitan
-- auditar() ⚠️ Solo RepositorioSenial lo necesita
-- trazar() ⚠️ Solo RepositorioSenial lo necesita
 
-❌ CONSECUENCIAS:
-RepositorioUsuario está FORZADO a implementar auditar() y trazar()
-aunque NO los necesita, resultando en implementaciones stub que lanzan excepciones.
+Auditoría y trazabilidad segregadas en:
+- BaseAuditor (supervisor.auditor) ✅ Solo para repositorios que lo necesitan
+- BaseTrazador (supervisor.trazador) ✅ Solo para repositorios que lo necesitan
 
-🎯 LECCIÓN: Segregar interfaces según necesidades reales de los clientes.
+✅ RESULTADO:
+- RepositorioSenial: Implementa BaseRepositorio + BaseAuditor + BaseTrazador
+- RepositorioUsuario: Solo implementa BaseRepositorio (sin métodos innecesarios)
+
+🎯 LECCIÓN: Interfaces segregadas según necesidades reales de los clientes.
 """
 from abc import ABC, abstractmethod
+from supervisor import BaseAuditor, BaseTrazador
 from typing import Any
 import datetime
 
 
 class BaseRepositorio(ABC):
     """
-    ⚠️ INTERFAZ "GORDA" - Violación ISP Intencional
+    ✅ Interfaz básica - Solo persistencia
 
     Define la interfaz para el acceso a la persistencia de datos
-    CON MÉTODOS QUE NO TODOS LOS CLIENTES NECESITAN.
-
-    Problema: Obliga a TODAS las implementaciones a definir:
-    - Persistencia (guardar/obtener) ✅ Necesario para todos
-    - Auditoría (auditar/trazar) ❌ Solo necesario para algunos
-
-    Solución ISP: Segregar en IRepositorioBasico + IRepositorioAuditable
+    SIN métodos de auditoría ni trazabilidad (ISP aplicado).
     """
+
     def __init__(self, contexto: Any):
         """
         Inicializa el repositorio con un contexto de persistencia
@@ -64,195 +60,149 @@ class BaseRepositorio(ABC):
         """
         pass
 
-    @abstractmethod
-    def auditar(self, entidad, auditoria):
-        """
-        ⚠️ MÉTODO PROBLEMÁTICO - No todos los repositorios necesitan auditoría
 
-        Realiza el registro de auditoría sobre la entidad indicada
-        :param entidad: Entidad a auditar
-        :param auditoria: Información de auditoría
-        """
-        pass
-
-    @abstractmethod
-    def trazar(self, entidad, accion, mensaje):
-        """
-        ⚠️ MÉTODO PROBLEMÁTICO - No todos los repositorios necesitan trazabilidad
-
-        Realiza la traza del evento ocurrido sobre la entidad y con el mensaje de
-        traza correspondiente
-        :param entidad: Entidad a trazar
-        :param accion: Acción realizada
-        :param mensaje: Mensaje de traza
-        """
-        pass
-
-
-class RepositorioSenial(BaseRepositorio):
+class RepositorioSenial(BaseAuditor, BaseTrazador, BaseRepositorio):
     """
-    ✅ Repositorio que SÍ NECESITA todos los métodos de BaseRepositorio
+    ✅ Repositorio que NECESITA auditoría y trazabilidad
 
-    Las señales son datos críticos que requieren:
-    - Persistencia (guardar/obtener)
-    - Auditoría completa (auditar/trazar)
+    Implementa las 3 interfaces porque las señales son datos críticos
+    que requieren supervisión completa:
+    - BaseRepositorio: Persistencia básica
+    - BaseAuditor: Auditoría de operaciones
+    - BaseTrazador: Trazabilidad de eventos
 
-    Este repositorio NO sufre la violación ISP porque USA todos los métodos.
+    Este repositorio NO sufre violación ISP porque USA todos los métodos.
     """
+
     def __init__(self, contexto: Any):
         """
-        Inicializa el repositorio con un contexto de persistencia
+        Inicializa el repositorio de señales
         :param contexto: Contexto de persistencia
         """
         super().__init__(contexto)
 
     def guardar(self, senial: Any) -> None:
         """
-        Persiste la señal
+        Persiste la señal con auditoría y trazabilidad
         :param senial: Señal a persistir
         """
         try:
-            # Convertir ID a string para compatibilidad
+            self.auditar(senial, "Antes de hacer la persistencia")
             self._contexto.persistir(senial, str(senial.id))
-        except Exception as e:
-            print(f"Error al guardar la señal: {e}")
+            self.auditar(senial, "Se realizó la persistencia")
+        except Exception as ex:
+            self.auditar(senial, "Problema al persistir")
+            self.trazar(senial, "guardar", str(ex))
             raise
 
     def obtener(self, id_senial: str, entidad: Any = None) -> Any:
         """
-        Obtiene una señal por su identificador
-
-        RECONSTRUCCIÓN AUTOMÁTICA: Si el contexto es ContextoArchivo con metadatos,
-        no requiere 'entidad'. Si es necesario, se puede proporcionar.
+        Obtiene una señal por su identificador con auditoría
 
         :param id_senial: Identificador de la señal
         :param entidad: Instancia template para deserialización (opcional)
         :return: Señal recuperada
         """
         try:
-            return self._contexto.recuperar(id_senial, entidad)
-        except Exception as e:
-            print(f"Error al obtener la señal: {e}")
+            # Auditar antes de recuperar (usamos dict vacío si no hay entidad)
+            self.auditar(entidad if entidad else {'id': id_senial}, "Antes de recuperar la señal")
+
+            senial_recuperada = self._contexto.recuperar(id_senial, entidad)
+
+            self.auditar(senial_recuperada, "Se realizó la recuperación")
+            return senial_recuperada
+        except Exception as ex:
+            msj = f'Error al leer señal persistida - ID: {id_senial}'
+            self.trazar(entidad if entidad else {'id': id_senial}, "obtener", msj)
             raise
 
-    def auditar(self, senial, auditoria):
+    def auditar(self, senial: Any, auditoria: str) -> None:
         """
-        ✅ IMPLEMENTACIÓN REAL - Este método SÍ se usa
+        ✅ IMPLEMENTACIÓN REAL - Auditoría de señales
 
-        Realiza el registro de auditoría sobre la señal indicada
+        Registra eventos de auditoría en archivo de log
         :param senial: Señal a auditar
-        :param auditoria: Información de auditoría
+        :param auditoria: Descripción del evento
         """
-        nombre = 'auditor.log'
+        nombre = 'auditor_senial.log'
         try:
-            with open(nombre, 'a') as auditor:
+            with open(nombre, 'a', encoding='utf-8') as auditor:
                 auditor.write('------->\n')
-                auditor.write(f'Señal ID: {senial.id}\n')
-                auditor.write(f'Fecha: {datetime.datetime.now()}\n')
-                auditor.write(f'Auditoría: {auditoria}\n')
+                auditor.write(f'{senial}\n')
+                auditor.write(f'{datetime.datetime.now()}\n')
+                auditor.write(f'{auditoria}\n')
                 auditor.write('\n')
         except IOError as eIO:
-            print(f"Error al auditar la señal: {eIO}")
+            print(f"Error al auditar: {eIO}")
             raise
 
-    def trazar(self, senial, accion, mensaje):
+    def trazar(self, senial: Any, accion: str, mensaje: str) -> None:
         """
-        ✅ IMPLEMENTACIÓN REAL - Este método SÍ se usa
+        ✅ IMPLEMENTACIÓN REAL - Trazabilidad de señales
 
-        Realiza la traza del evento ocurrido sobre la señal y con el mensaje de
-        traza correspondiente
+        Registra trazas de acciones en archivo de log
         :param senial: Señal a trazar
-        :param accion: Acción realizada
-        :param mensaje: Mensaje de traza
+        :param accion: Acción realizada (ej: "guardar", "obtener")
+        :param mensaje: Mensaje descriptivo
         """
-        nombre = 'logger.log'
+        nombre = 'logger_senial.log'
         try:
-            with open(nombre, 'a') as logger:
+            with open(nombre, 'a', encoding='utf-8') as logger:
                 logger.write('------->\n')
                 logger.write(f'Acción: {accion}\n')
-                logger.write(f'Señal ID: {senial.id}\n')
-                logger.write(f'Fecha: {datetime.datetime.now()}\n')
-                logger.write(f'Mensaje: {mensaje}\n')
+                logger.write(f'{senial}\n')
+                logger.write(f'{datetime.datetime.now()}\n')
+                logger.write(f'{mensaje}\n')
                 logger.write('\n')
         except IOError as eIO:
-            print(f"Error al trazar la señal: {eIO}")
+            print(f"Error al trazar: {eIO}")
             raise
 
 
 class RepositorioUsuario(BaseRepositorio):
     """
-    ❌ Repositorio que SUFRE la violación ISP
+    ✅ Repositorio simple - SIN auditoría ni trazabilidad
 
-    Los usuarios solo necesitan:
-    - Persistencia (guardar/obtener) ✅ Se usan
-    - Auditoría (auditar/trazar) ❌ NO se necesitan
+    Solo implementa BaseRepositorio porque los usuarios son entidades
+    simples que NO requieren supervisión especial.
 
-    Problema: BaseRepositorio OBLIGA a implementar auditar() y trazar()
-    aunque este repositorio NO los necesita.
-
-    Consecuencia: Implementaciones falsas (stub) que lanzan excepciones.
+    Este repositorio DEMUESTRA la corrección ISP:
+    - Solo implementa métodos que REALMENTE necesita
+    - NO hay stubs con NotImplementedError
+    - NO depende de interfaces innecesarias
     """
+
     def __init__(self, contexto: Any):
         """
-        Inicializa el repositorio con un contexto de persistencia
+        Inicializa el repositorio de usuarios
         :param contexto: Contexto de persistencia
         """
         super().__init__(contexto)
 
     def guardar(self, usuario: Any) -> None:
         """
-        ✅ IMPLEMENTACIÓN REAL - Este método SÍ se usa
+        ✅ IMPLEMENTACIÓN REAL - Persistencia de usuario
 
-        Persiste el usuario
+        Persiste el usuario sin auditoría
         :param usuario: Usuario a persistir
         """
         try:
             self._contexto.persistir(usuario, str(usuario.id))
-        except Exception as e:
-            print(f"Error al guardar el usuario: {e}")
+        except Exception as ex:
+            print(f"Error al guardar usuario: {ex}")
             raise
 
     def obtener(self, id_usuario: str, entidad: Any = None) -> Any:
         """
-        ✅ IMPLEMENTACIÓN REAL - Este método SÍ se usa
+        ✅ IMPLEMENTACIÓN REAL - Recuperación de usuario
 
-        Obtiene un usuario por su identificador
-
-        RECONSTRUCCIÓN AUTOMÁTICA: Si el contexto es ContextoArchivo con metadatos,
-        no requiere 'entidad'. Si es necesario, se puede proporcionar.
-
+        Obtiene un usuario sin auditoría
         :param id_usuario: Identificador del usuario
         :param entidad: Instancia template para deserialización (opcional)
         :return: Usuario recuperado
         """
         try:
             return self._contexto.recuperar(id_usuario, entidad)
-        except Exception as e:
-            print(f"Error al obtener el usuario: {e}")
+        except Exception as ex:
+            print(f"Error al obtener usuario: {ex}")
             raise
-
-    def auditar(self, entidad, auditoria):
-        """
-        ❌ IMPLEMENTACIÓN STUB - Violación ISP
-
-        FORZADO a implementar por BaseRepositorio pero NO se necesita.
-
-        Este método existe SOLO porque la interfaz abstracta lo obliga.
-        Si un cliente intenta usarlo, FALLA en runtime.
-
-        🎯 LECCIÓN ISP: "Los clientes no deberían depender de interfaces que no usan"
-        """
-        raise NotImplementedError("RepositorioUsuario no soporta auditoría - Violación ISP")
-
-    def trazar(self, entidad, accion, mensaje):
-        """
-        ❌ IMPLEMENTACIÓN STUB - Violación ISP
-
-        FORZADO a implementar por BaseRepositorio pero NO se necesita.
-
-        Este método existe SOLO porque la interfaz abstracta lo obliga.
-        Si un cliente intenta usarlo, FALLA en runtime.
-
-        🎯 LECCIÓN ISP: "Los clientes no deberían depender de interfaces que no usan"
-        """
-        raise NotImplementedError("RepositorioUsuario no soporta trazabilidad - Violación ISP")

@@ -1,12 +1,14 @@
 """
-Setup para el paquete persistidor_senial
+Setup para el paquete supervisor
 """
 from setuptools import setup, find_packages
 
 setup(
-    name="persistidor-senial",
-    version="6.0.0",
-    description="Repository Pattern con Strategy para persistencia - Demostración completa de SOLID (SRP + OCP + LSP + ISP + DIP) con interfaces segregadas",
+    name="supervisor",
+    version="1.0.0",
+    description="Paquete de auditoría y trazabilidad - Demostración de ISP correctamente aplicado",
+    long_description=open('../README.md', encoding='utf-8').read() if __name__ == '__main__' else '',
+    long_description_content_type="text/markdown",
     author="Victor Valotto",
     author_email="vvalotto@gmail.com",
     url="https://github.com/vvalotto/Senial_SOLID_IS",
@@ -14,8 +16,7 @@ setup(
     packages=find_packages(),
     python_requires=">=3.8",
     install_requires=[
-        "dominio-senial>=4.0.0",
-        "supervisor>=1.0.0",
+        # Sin dependencias externas - paquete standalone
     ],
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -31,8 +32,9 @@ setup(
         "Programming Language :: Python :: 3.12",
         "Topic :: Education",
         "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: System :: Logging",
     ],
-    keywords="solid principles, repository pattern, strategy pattern, ISP, DIP, persistence, signal processing, education",
+    keywords="solid principles, ISP, interface segregation, audit, trace, logging, supervision, education",
     project_urls={
         "Bug Reports": "https://github.com/vvalotto/Senial_SOLID_IS/issues",
         "Source": "https://github.com/vvalotto/Senial_SOLID_IS",

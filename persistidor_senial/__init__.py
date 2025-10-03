@@ -4,38 +4,38 @@ Paquete de persistencia de señales digitales
 Proporciona funcionalidad para guardar y recuperar señales en diferentes formatos.
 
 🎯 OBJETIVO DIDÁCTICO:
-Este paquete contiene violaciones intencionales del principio ISP (Interface Segregation Principle)
-para demostrar problemas de interfaces "gordas" y su posterior corrección.
+Este paquete demuestra la aplicación correcta del principio ISP (Interface Segregation Principle)
+mediante interfaces segregadas y herencia múltiple.
 
-⚠️ VIOLACIÓN ISP DEMOSTRADA (v5.3.0):
-- BaseRepositorio define interfaz "gorda" con 4 métodos abstractos:
-  * guardar() + obtener() → Necesarios para TODOS los repositorios ✅
-  * auditar() + trazar() → Solo necesarios para RepositorioSenial ❌
-- RepositorioUsuario FORZADO a implementar auditar() y trazar()
-- Implementaciones stub que lanzan NotImplementedError
-- Código frágil que falla en runtime
+✅ ISP CORRECTAMENTE APLICADO (v6.0.0):
+- BaseRepositorio: Solo métodos básicos (guardar, obtener)
+- BaseAuditor (supervisor): Interfaz segregada para auditoría
+- BaseTrazador (supervisor): Interfaz segregada para trazabilidad
+- RepositorioSenial: Herencia múltiple (BaseAuditor + BaseTrazador + BaseRepositorio)
+- RepositorioUsuario: Solo BaseRepositorio (sin métodos innecesarios)
 
-✅ PRINCIPIOS CORRECTOS:
+✅ PRINCIPIOS SOLID APLICADOS:
 - SRP: Cada clase tiene una responsabilidad única
 - OCP: Extensible sin modificación (nuevos contextos)
 - LSP: Contextos intercambiables
+- ISP: Interfaces segregadas según necesidades reales
 - DIP: Repositorio depende de abstracción BaseContexto (inyección)
 
 Clases principales - Patrón Repository:
-- BaseRepositorio: Abstracción de dominio (interfaz "gorda" - violación ISP)
-- RepositorioSenial: Repositorio con auditoría/trazabilidad
-- RepositorioUsuario: Repositorio simple (sufre violación ISP)
+- BaseRepositorio: Abstracción de dominio básica (guardar, obtener)
+- RepositorioSenial: Repositorio con auditoría/trazabilidad (herencia múltiple)
+- RepositorioUsuario: Repositorio simple (solo persistencia)
 - BaseContexto: Abstracción de infraestructura (Strategy Pattern)
 - ContextoPickle: Persistencia binaria con pickle
 - ContextoArchivo: Persistencia en texto plano
 - MapeadorArchivo: Serialización/deserialización para archivos de texto
 
-Versión: 5.3.0 - Violación ISP intencional en BaseRepositorio (auditar/trazar)
+Versión: 6.0.0 - ISP corregido con interfaces segregadas (supervisor package)
 Autor: Victor Valotto
 """
 
 __author__ = 'Victor Valotto'
-__version__ = '5.3.0'
+__version__ = '6.0.0'
 
 from persistidor_senial.contexto import BaseContexto, ContextoPickle, ContextoArchivo
 from persistidor_senial.repositorio import BaseRepositorio, RepositorioSenial, RepositorioUsuario

@@ -142,13 +142,7 @@ class Lanzador:
             repo_adquisicion.guardar(senial_original)
             print(f'✅ Señal persistida con ID: {senial_original.id}')
             print(f'   📁 Repositorio: ./datos_persistidos/adquisicion/')
-
-            # 📝 AUDITORÍA Y TRAZABILIDAD - Demostración de métodos ISP
-            print('\n📝 PASO 1.2 - Auditoría y trazabilidad de señal adquirida...')
-            repo_adquisicion.auditar(senial_original, f"Señal adquirida desde archivo con {senial_original.cantidad} valores")
-            repo_adquisicion.trazar(senial_original, "ADQUISICION", f"Lectura completada - {senial_original.comentario}")
-            print(f'✅ Auditoría registrada en: auditor.log')
-            print(f'✅ Traza registrada en: logger.log')
+            print(f'   📝 Auditoría y trazabilidad: Registradas automáticamente')
             Lanzador.tecla()
 
             # ✅ ORQUESTACIÓN: Paso 2 - Procesamiento
@@ -173,13 +167,7 @@ class Lanzador:
             repo_procesamiento.guardar(senial_procesada)
             print(f'✅ Señal procesada persistida con ID: {senial_procesada.id}')
             print(f'   📁 Repositorio: ./datos_persistidos/procesamiento/')
-
-            # 📝 AUDITORÍA Y TRAZABILIDAD - Demostración de métodos ISP
-            print('\n📝 PASO 2.2 - Auditoría y trazabilidad de señal procesada...')
-            repo_procesamiento.auditar(senial_procesada, f"Señal procesada con {type(procesador).__name__}")
-            repo_procesamiento.trazar(senial_procesada, "PROCESAMIENTO", f"Procesamiento completado - {senial_procesada.comentario}")
-            print(f'✅ Auditoría registrada en: auditor.log')
-            print(f'✅ Traza registrada en: logger.log')
+            print(f'   📝 Auditoría y trazabilidad: Registradas automáticamente')
             Lanzador.tecla()
 
             # ✅ ORQUESTACIÓN: Paso 3 - Recuperación desde repositorios
@@ -245,8 +233,8 @@ class Lanzador:
             print("   ✅ SRP: Una responsabilidad por clase/paquete")
             print("   ✅ OCP: Procesadores y contextos extensibles sin modificar lanzador")
             print("   ✅ LSP: Tipos de señal intercambiables (SenialBase aplicado)")
-            print("   ❌ ISP: VIOLACIÓN INTENCIONAL - BaseRepositorio con interfaz 'gorda'")
-            print("          (auditar + trazar obligatorios para TODOS los repositorios)")
+            print("   ✅ ISP: Interfaces segregadas - BaseAuditor y BaseTrazador independientes")
+            print("          (solo RepositorioSenial implementa auditoría/trazabilidad)")
             print("   ✅ DIP: Repositorio depende de abstracción BaseContexto (inyección)")
             print()
             print("🎯 PATRÓN REPOSITORY APLICADO:")
