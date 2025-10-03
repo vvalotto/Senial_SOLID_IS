@@ -5,8 +5,8 @@ from setuptools import setup, find_packages
 
 setup(
     name="persistidor-senial",
-    version="1.0.0",
-    description="Repository Pattern con Strategy para persistencia - Demostración SOLID (SRP + OCP + LSP + DIP) + violaciones ISP intencionales",
+    version="5.3.0",
+    description="Repository Pattern con Strategy para persistencia - Demostración SOLID (SRP + OCP + LSP + DIP) + violación ISP intencional en BaseRepositorio",
     author="Victor Valotto",
     author_email="vvalotto@gmail.com",
     url="https://github.com/vvalotto/Senial_SOLID_IS",

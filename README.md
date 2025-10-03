@@ -1,10 +1,12 @@
 # Principios SOLID - Caso de Estudio Avanzado
 
-**Versión**: 4.0.0 - LSP Completo + DIP Aplicado
+**Versión**: 5.3.0 - Violación ISP Intencional (Didáctica)
 **Autor**: Victor Valotto
 **Objetivo**: Demostración práctica y didáctica de principios SOLID aplicados a arquitectura de software
 
 Este proyecto es un caso de estudio didáctico que demuestra la **evolución progresiva** de un sistema de procesamiento de señales digitales aplicando principios SOLID, desde violaciones iniciales hasta arquitectura limpia y extensible.
+
+⚠️ **RAMA ACTUAL: NoISP** - Contiene violación INTENCIONAL de ISP para fines didácticos.
 
 ## 🎯 Estado Actual del Proyecto
 
@@ -13,7 +15,7 @@ Este proyecto es un caso de estudio didáctico que demuestra la **evolución pro
 - **✅ S** - **Single Responsibility Principle**: Aplicado a nivel de clases Y paquetes
 - **✅ O** - **Open/Closed Principle**: Extensibilidad sin modificación (procesamiento + adquisición)
 - **✅ L** - **Liskov Substitution Principle**: Intercambiabilidad polimórfica garantizada con SenialBase
-- **📋 I** - **Interface Segregation Principle**: Preparado para interfaces específicas
+- **❌ I** - **Interface Segregation Principle**: VIOLACIÓN INTENCIONAL - BaseRepositorio con interfaz "gorda"
 - **✅ D** - **Dependency Inversion Principle**: Dependencia de abstracciones, inyección de dependencias
 
 ### 🏗️ Arquitectura Actual
@@ -60,8 +62,10 @@ Este proyecto es un caso de estudio didáctico que demuestra la **evolución pro
 
 **Contexto**: Los datos adquiridos y procesados deben ser guardados. Se deben registrar los eventos de adquisición y guardado para tener una trazabilidad.
 - **Desafío ISP**: Interfaces segregadas por responsabilidad específica
-- **Solución**: 🔄 En desarrollo - Interfaces especializadas para persistencia y logging
-- **Objetivo**: Evitar interfaces "gordas" que fuercen a implementar métodos innecesarios
+- **Implementación v5.3.0**: ⚠️ VIOLACIÓN INTENCIONAL implementada para fines didácticos
+- **Problema Demostrado**: `BaseRepositorio` con 4 métodos abstractos (guardar, obtener, auditar, trazar)
+- **Consecuencia**: `RepositorioUsuario` forzado a implementar auditar/trazar aunque no los necesita
+- **Próximo Paso**: Resolver violación segregando en `IRepositorioBasico` + `IRepositorioAuditable`
 
 
 ## 🚀 Funcionalidades Implementadas
@@ -86,6 +90,39 @@ Este proyecto es un caso de estudio didáctico que demuestra la **evolución pro
 - **Sin decisiones**: Delegadas al Configurador
 - **Sin interacción**: No maneja input del usuario
 
+
+## ⚠️ Demostración de Violación ISP
+
+### 🎯 Propósito Didáctico
+
+Esta versión implementa INTENCIONALMENTE una violación de ISP para demostrar:
+
+1. **Interfaz "Gorda"**: `BaseRepositorio` con 4 métodos abstractos obligatorios
+2. **Cliente Afectado**: `RepositorioUsuario` forzado a implementar métodos innecesarios
+3. **Consecuencias**: Implementaciones stub que lanzan `NotImplementedError`
+
+### 📝 Script de Demostración
+
+```bash
+# Ejecutar demostración completa de violación ISP
+python demo_violacion_isp.py
+```
+
+**Salida esperada**:
+- ✅ `RepositorioSenial`: Usa los 4 métodos → Sin problemas
+- ❌ `RepositorioUsuario`: Métodos auditar/trazar → Crash con `NotImplementedError`
+
+### 🎓 Lección Aprendida
+
+**Violación ISP**: Cuando una interfaz obliga a implementar métodos innecesarios:
+- Código frágil (crashes en runtime)
+- Implementaciones falsas (stubs)
+- Violación de contratos
+- Dificultad para mantener
+
+**Solución**: Segregar en interfaces específicas según necesidades reales.
+
+---
 
 ## 📖 Uso del Sistema
 
@@ -205,7 +242,9 @@ pytest lanzador/tests/
 
 ### 🔄 Próximo Paso
 
-- **ISP**: Interfaces específicas por responsabilidad
+- **Corrección ISP**: Segregar `BaseRepositorio` en:
+  - `IRepositorioBasico` (guardar, obtener) - Para TODOS
+  - `IRepositorioAuditable` (auditar, trazar) - Solo para señales
 
 ## 🛠️ Instalación y Configuración
 

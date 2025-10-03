@@ -1,8 +1,8 @@
 # Persistidor de Señales - Repository Pattern
 
-**Versión**: 1.0.0
+**Versión**: 5.3.0
 **Autor**: Victor Valotto
-**Objetivo**: Demostración del Repository Pattern + Interface Segregation Principle (ISP)
+**Objetivo**: Demostración del Repository Pattern + Violación ISP Intencional (Didáctica)
 
 ## 📋 Descripción
 
@@ -14,16 +14,21 @@ Este paquete implementa el **Patrón Repository** para la persistencia de señal
 ┌─────────────────────────────────────────────────────────────┐
 │                      CAPA DE DOMINIO                        │
 │  ┌────────────────────────────────────────────────────┐     │
-│  │  BaseRepositorio (Abstracción)                     │     │
-│  │  - guardar(entidad)                                │     │
-│  │  - obtener(id_entidad) → entidad                   │     │
+│  │  BaseRepositorio ⚠️ INTERFAZ "GORDA" (ISP)         │     │
+│  │  - guardar(entidad) ✅                             │     │
+│  │  - obtener(id_entidad) ✅                          │     │
+│  │  - auditar(entidad, auditoria) ⚠️                  │     │
+│  │  - trazar(entidad, accion, mensaje) ⚠️             │     │
 │  └────────────────────────────────────────────────────┘     │
 │                           ▲                                 │
-│                           │                                 │
-│  ┌────────────────────────┴──────────────────────────┐     │
-│  │  RepositorioSenial                                 │     │
-│  │  RepositorioUsuario                                │     │
-│  └────────────────────────────────────────────────────┘     │
+│              ┌────────────┴────────────┐                    │
+│              │                         │                    │
+│  ┌───────────┴──────────┐  ┌──────────┴────────────┐       │
+│  │  RepositorioSenial   │  │  RepositorioUsuario   │       │
+│  │  ✅ USA los 4 métodos │  │  ❌ Solo usa 2/4      │       │
+│  │  (señales necesitan  │  │  (usuarios NO         │       │
+│  │   auditoría)         │  │   necesitan auditoría)│       │
+│  └──────────────────────┘  └───────────────────────┘       │
 └─────────────────────────────────────────────────────────────┘
                             │
                             │ Inyección (DIP)
@@ -61,10 +66,23 @@ Este paquete implementa el **Patrón Repository** para la persistencia de señal
 - Contextos intercambiables sin afectar la lógica de dominio
 
 ### 4. ISP (Interface Segregation Principle)
-⚠️ **VIOLACIÓN INTENCIONAL CON FINES DIDÁCTICOS**:
-- `BaseContexto` tiene interfaz "gorda" (persistir + recuperar)
-- Clientes forzados a implementar métodos que no siempre necesitan
-- **Corrección planificada**: Segregar en `IPersistible`, `IRecuperable`, `IAuditable`
+❌ **VIOLACIÓN INTENCIONAL CON FINES DIDÁCTICOS (v5.3.0)**:
+
+**Problema**: `BaseRepositorio` es una interfaz "gorda" con 4 métodos abstractos:
+- `guardar()` ✅ Todos los repositorios lo necesitan
+- `obtener()` ✅ Todos los repositorios lo necesitan
+- `auditar()` ⚠️ Solo `RepositorioSenial` lo necesita
+- `trazar()` ⚠️ Solo `RepositorioSenial` lo necesita
+
+**Consecuencia**: `RepositorioUsuario` está FORZADO a implementar `auditar()` y `trazar()`:
+```python
+def auditar(self, entidad, auditoria):
+    raise NotImplementedError("RepositorioUsuario no soporta auditoría - Violación ISP")
+```
+
+**Resultado**: Código frágil que falla en runtime si se intenta usar auditoría en usuarios.
+
+**Corrección planificada**: Segregar en `IRepositorioBasico` + `IRepositorioAuditable`
 
 ### 5. DIP (Dependency Inversion Principle)
 ✅ **APLICADO CORRECTAMENTE**:
@@ -76,7 +94,9 @@ Este paquete implementa el **Patrón Repository** para la persistencia de señal
 ### Repositorios (Capa de Dominio)
 
 #### `BaseRepositorio`
-Abstracción que define la interfaz de dominio para persistencia.
+⚠️ **Interfaz "Gorda" - Violación ISP Intencional**
+
+Abstracción que define la interfaz de dominio para persistencia con métodos innecesarios para algunos clientes.
 
 ```python
 class BaseRepositorio(ABC):
@@ -92,10 +112,22 @@ class BaseRepositorio(ABC):
     def obtener(self, id_entidad: str, entidad: Any = None) -> Any:
         """Obtiene una entidad por su identificador"""
         pass
+
+    @abstractmethod
+    def auditar(self, entidad, auditoria):
+        """⚠️ PROBLEMÁTICO - No todos los repositorios necesitan auditoría"""
+        pass
+
+    @abstractmethod
+    def trazar(self, entidad, accion, mensaje):
+        """⚠️ PROBLEMÁTICO - No todos los repositorios necesitan trazabilidad"""
+        pass
 ```
 
 #### `RepositorioSenial`
-Repositorio específico para gestionar señales.
+✅ **Repositorio que USA todos los métodos** - Sin problemas ISP
+
+Repositorio específico para gestionar señales con auditoría completa.
 
 ```python
 from persistidor_senial import RepositorioSenial, ContextoPickle
@@ -106,14 +138,18 @@ contexto = ContextoPickle("./datos")
 # Crear repositorio con contexto inyectado (DIP)
 repo = RepositorioSenial(contexto)
 
-# API de dominio
+# API de dominio - Todos los métodos funcionan
 senial.id = 1000
-repo.guardar(senial)  # Guardar
-senial_recuperada = repo.obtener("1000")  # Recuperar
+repo.guardar(senial)  # ✅ Guardar
+senial_recuperada = repo.obtener("1000")  # ✅ Recuperar
+repo.auditar(senial, "Señal procesada correctamente")  # ✅ Auditar
+repo.trazar(senial, "PROCESAMIENTO", "Amplificación x4")  # ✅ Trazar
 ```
 
 #### `RepositorioUsuario`
-Repositorio específico para gestionar usuarios.
+❌ **Repositorio que SUFRE violación ISP** - Métodos innecesarios
+
+Repositorio específico para gestionar usuarios (solo persistencia, sin auditoría).
 
 ```python
 from persistidor_senial import RepositorioUsuario, ContextoArchivo
@@ -122,8 +158,12 @@ contexto = ContextoArchivo("./usuarios")
 repo = RepositorioUsuario(contexto)
 
 usuario.id = 500
-repo.guardar(usuario)
-usuario_recuperado = repo.obtener("500")
+repo.guardar(usuario)  # ✅ Funciona
+usuario_recuperado = repo.obtener("500")  # ✅ Funciona
+
+# ❌ Estos métodos FALLAN en runtime
+repo.auditar(usuario, "...")  # 💥 NotImplementedError
+repo.trazar(usuario, "LOGIN", "...")  # 💥 NotImplementedError
 ```
 
 ### Contextos (Capa de Infraestructura - Strategy Pattern)
@@ -397,57 +437,111 @@ senial_desde_pickle = repo_binario.obtener("3000")
 senial_desde_texto = repo_texto.obtener("3000")
 ```
 
-## ⚠️ Limitaciones Conocidas y Violaciones ISP
+## ⚠️ Violación ISP Intencional (Fines Didácticos)
 
-### Violaciones Intencionales (Fines Didácticos)
+### Problema Central: Interfaz "Gorda" en `BaseRepositorio`
 
-1. **Interfaz "gorda" en BaseContexto**:
-   - Mezcla `persistir()` y `recuperar()` en una sola interfaz
-   - Clientes que solo necesitan persistir están forzados a implementar `recuperar()`
-   - Clientes que solo necesitan recuperar están forzados a implementar `persistir()`
+**BaseRepositorio** obliga a implementar 4 métodos abstractos, pero NO todos los clientes los necesitan:
 
-2. **Falta de segregación por capacidad**:
-   - No hay interfaces especializadas: `IPersistible`, `IRecuperable`
-   - No hay interfaz dedicada para auditoría/trazabilidad (`IAuditable`)
+| Método | RepositorioSenial | RepositorioUsuario | ¿Problema ISP? |
+|--------|-------------------|---------------------|----------------|
+| `guardar()` | ✅ Necesita | ✅ Necesita | ✅ OK |
+| `obtener()` | ✅ Necesita | ✅ Necesita | ✅ OK |
+| `auditar()` | ✅ Necesita | ❌ NO necesita | ⚠️ **VIOLACIÓN ISP** |
+| `trazar()` | ✅ Necesita | ❌ NO necesita | ⚠️ **VIOLACIÓN ISP** |
 
-3. **Acoplamiento de responsabilidades**:
-   - La misma clase debe conocer cómo guardar Y cómo recuperar
-   - Dificulta implementaciones de solo lectura o solo escritura
+### Consecuencias de la Violación
+
+**RepositorioUsuario** está forzado a implementar métodos innecesarios:
+
+```python
+class RepositorioUsuario(BaseRepositorio):
+    def guardar(self, usuario):
+        # ✅ Implementación REAL
+        self._contexto.persistir(usuario, str(usuario.id))
+
+    def obtener(self, id_usuario, entidad=None):
+        # ✅ Implementación REAL
+        return self._contexto.recuperar(id_usuario, entidad)
+
+    def auditar(self, entidad, auditoria):
+        # ❌ STUB - Método innecesario
+        raise NotImplementedError("RepositorioUsuario no soporta auditoría")
+
+    def trazar(self, entidad, accion, mensaje):
+        # ❌ STUB - Método innecesario
+        raise NotImplementedError("RepositorioUsuario no soporta trazabilidad")
+```
+
+### Impacto en Código Cliente
+
+```python
+repo_usuario = RepositorioUsuario(contexto)
+
+# ✅ Métodos que funcionan
+repo_usuario.guardar(usuario)
+usuario_recuperado = repo_usuario.obtener("1")
+
+# ❌ Métodos que FALLAN en runtime
+repo_usuario.auditar(usuario, "...")  # 💥 NotImplementedError
+repo_usuario.trazar(usuario, "...", "...")  # 💥 NotImplementedError
+```
+
+**Problema**: Código frágil que compila pero falla en ejecución.
 
 ### Corrección Planificada (ISP)
 
-En futuras versiones se aplicará ISP mediante:
+Segregar `BaseRepositorio` en interfaces específicas:
 
 ```python
-# Interfaces segregadas
-class IPersistible(ABC):
+# Interfaz básica - TODOS la necesitan
+class IRepositorioBasico(ABC):
     @abstractmethod
     def guardar(self, entidad: Any) -> None:
         pass
 
-class IRecuperable(ABC):
     @abstractmethod
-    def obtener(self, id_entidad: str) -> Any:
+    def obtener(self, id_entidad: str, entidad: Any = None) -> Any:
         pass
 
-class IAuditable(ABC):
+# Interfaz especializada - SOLO para auditables
+class IRepositorioAuditable(ABC):
     @abstractmethod
-    def registrar_operacion(self, tipo: str, entidad: Any) -> None:
+    def auditar(self, entidad, auditoria):
         pass
 
-# Implementaciones especializadas
-class PersistidorSoloEscritura(IPersistible):
-    # Solo implementa guardar()
+    @abstractmethod
+    def trazar(self, entidad, accion, mensaje):
+        pass
+
+# Composición según necesidades reales
+class RepositorioSenial(IRepositorioBasico, IRepositorioAuditable):
+    # Implementa los 4 métodos - Sin problemas
     pass
 
-class RecuperadorSoloLectura(IRecuperable):
-    # Solo implementa obtener()
-    pass
-
-class PersistidorAuditable(IPersistible, IAuditable):
-    # Implementa guardar() + registrar_operacion()
+class RepositorioUsuario(IRepositorioBasico):
+    # Solo implementa 2 métodos - ¡Sin stubs innecesarios!
     pass
 ```
+
+**Beneficios**:
+- ✅ Clientes solo implementan lo que realmente necesitan
+- ✅ No hay métodos stub que lancen excepciones
+- ✅ Contratos honestos y respetados
+- ✅ Mayor flexibilidad y mantenibilidad
+
+### Demostración Interactiva
+
+Ejecutar script de demostración completo:
+
+```bash
+python demo_violacion_isp.py
+```
+
+Este script muestra:
+1. ✅ `RepositorioSenial` usando los 4 métodos exitosamente
+2. ❌ `RepositorioUsuario` fallando al intentar auditar/trazar
+3. 📚 Explicación de la solución ISP correcta
 
 ## 🔄 Próximas Mejoras
 

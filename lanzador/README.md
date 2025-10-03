@@ -1,8 +1,8 @@
 # Lanzador - Orquestador del Sistema
 
-**Versión**: 5.2.0
+**Versión**: 5.3.0
 **Patrón**: Orquestador/Coordinador
-**Responsabilidad**: Orquestar flujo de procesamiento de señales
+**Responsabilidad**: Orquestar flujo de procesamiento de señales con auditoría y trazabilidad
 
 ## 📋 Descripción
 
@@ -121,6 +121,10 @@ senial_original = adquisidor.obtener_senial_adquirida()
 # Persistir con API de dominio
 senial_original.id = 1000
 repo_adquisicion.guardar(senial_original)  # Repository Pattern
+
+# 📝 NUEVO v5.3.0: Auditoría y trazabilidad
+repo_adquisicion.auditar(senial_original, "Señal adquirida desde archivo")
+repo_adquisicion.trazar(senial_original, "ADQUISICION", "Lectura completada")
 ```
 
 ### Paso 2: Procesamiento
@@ -136,6 +140,10 @@ senial_procesada = procesador.obtener_senial_procesada()
 # Persistir con API de dominio
 senial_procesada.id = 2000
 repo_procesamiento.guardar(senial_procesada)  # Repository Pattern
+
+# 📝 NUEVO v5.3.0: Auditoría y trazabilidad
+repo_procesamiento.auditar(senial_procesada, "Señal procesada correctamente")
+repo_procesamiento.trazar(senial_procesada, "PROCESAMIENTO", "Amplificación completada")
 ```
 
 ### Paso 3: Recuperación desde Repositorios (v5.2+)
@@ -177,9 +185,11 @@ visualizador.mostrar_datos(senial_procesada_recuperada)
 - `SenialLista`, `SenialPila`, `SenialCola` intercambiables
 
 ### ISP (Interface Segregation Principle)
-⚠️ **VIOLACIÓN INTENCIONAL**: Contextos con interfaz "gorda"
-- `BaseContexto` mezcla persistir + recuperar
-- Fines didácticos - Corrección planificada
+❌ **VIOLACIÓN INTENCIONAL (v5.3.0)**: BaseRepositorio con interfaz "gorda"
+- `BaseRepositorio` obliga a implementar 4 métodos: guardar, obtener, auditar, trazar
+- `RepositorioUsuario` forzado a implementar auditar/trazar innecesariamente
+- Implementaciones stub que lanzan `NotImplementedError`
+- Fines didácticos - Corrección planificada: segregar en `IRepositorioBasico` + `IRepositorioAuditable`
 
 ### DIP (Dependency Inversion Principle)
 ✅ **APLICADO**:
@@ -264,9 +274,14 @@ from lanzador import Lanzador
 Lanzador.ejecutar()
 ```
 
-## 📋 Resumen de Cambios v5.2
+## 📋 Resumen de Cambios v5.3.0
 
-### Agregado
+### Agregado (v5.3.0)
+- 📝 **Auditoría y trazabilidad**: Llamadas a `auditar()` y `trazar()` para señales
+- 📄 Generación de archivos `auditor.log` y `logger.log`
+- ⚠️ **Violación ISP intencional**: `BaseRepositorio` con interfaz "gorda" (didáctica)
+
+### Agregado (v5.2.0)
 - ✅ Patrón Repository para persistencia
 - ✅ Recuperación desde repositorios antes de visualizar
 - ✅ API semántica de dominio (`guardar()` / `obtener()`)
@@ -276,12 +291,16 @@ Lanzador.ejecutar()
 - 🔄 Persistencia: De API técnica (`persistir()`) a API de dominio (`guardar()`)
 - 🔄 Recuperación: De API técnica (`recuperar()`) a API de dominio (`obtener()`)
 - 🔄 Visualización: Ahora usa señales recuperadas desde archivos
+- 📝 Orquestación: Incluye auditoría y trazabilidad para señales
 
 ### Mantenido
 - ✅ SRP: Lanzador sigue teniendo una única responsabilidad (orquestar)
 - ✅ OCP: Sin modificaciones al agregar nuevos contextos
 - ✅ LSP: Tipos de señal totalmente intercambiables
 - ✅ DIP: Dependencias inyectadas vía Configurador
+
+### Violación Didáctica
+- ⚠️ ISP: `BaseRepositorio` obliga a implementar métodos innecesarios (fines educativos)
 
 ---
 

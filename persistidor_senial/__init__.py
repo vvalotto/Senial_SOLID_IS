@@ -7,28 +7,35 @@ Proporciona funcionalidad para guardar y recuperar señales en diferentes format
 Este paquete contiene violaciones intencionales del principio ISP (Interface Segregation Principle)
 para demostrar problemas de interfaces "gordas" y su posterior corrección.
 
-⚠️ VIOLACIÓN ISP DEMOSTRADA:
-- BasePersistidor define interfaz "gorda" con persistir() + recuperar()
-- Clientes que solo escriben deben conocer recuperar()
-- Clientes que solo leen deben conocer persistir()
+⚠️ VIOLACIÓN ISP DEMOSTRADA (v5.3.0):
+- BaseRepositorio define interfaz "gorda" con 4 métodos abstractos:
+  * guardar() + obtener() → Necesarios para TODOS los repositorios ✅
+  * auditar() + trazar() → Solo necesarios para RepositorioSenial ❌
+- RepositorioUsuario FORZADO a implementar auditar() y trazar()
+- Implementaciones stub que lanzan NotImplementedError
+- Código frágil que falla en runtime
 
 ✅ PRINCIPIOS CORRECTOS:
 - SRP: Cada clase tiene una responsabilidad única
-- OCP: Extensible sin modificación (nuevos persistidores)
-- DIP: Dependencia en abstracción (BasePersistidor)
+- OCP: Extensible sin modificación (nuevos contextos)
+- LSP: Contextos intercambiables
+- DIP: Repositorio depende de abstracción BaseContexto (inyección)
 
-Clases principales:
-- BasePersistidor: Clase abstracta base (interfaz "gorda" - violación ISP)
-- PersistidorPickle: Persistencia binaria con pickle
-- PersistidorArchivo: Persistencia en texto plano
+Clases principales - Patrón Repository:
+- BaseRepositorio: Abstracción de dominio (interfaz "gorda" - violación ISP)
+- RepositorioSenial: Repositorio con auditoría/trazabilidad
+- RepositorioUsuario: Repositorio simple (sufre violación ISP)
+- BaseContexto: Abstracción de infraestructura (Strategy Pattern)
+- ContextoPickle: Persistencia binaria con pickle
+- ContextoArchivo: Persistencia en texto plano
 - MapeadorArchivo: Serialización/deserialización para archivos de texto
 
-Versión: 1.0.0 - Diseño base con violación ISP intencional
+Versión: 5.3.0 - Violación ISP intencional en BaseRepositorio (auditar/trazar)
 Autor: Victor Valotto
 """
 
 __author__ = 'Victor Valotto'
-__version__ = '1.0.0'
+__version__ = '5.3.0'
 
 from persistidor_senial.contexto import BaseContexto, ContextoPickle, ContextoArchivo
 from persistidor_senial.repositorio import BaseRepositorio, RepositorioSenial, RepositorioUsuario

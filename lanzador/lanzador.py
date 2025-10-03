@@ -5,10 +5,6 @@ Lanzador principal del sistema que demuestra SRP PURO aplicado.
 Este módulo implementa el patrón COORDINADOR que aplica SRP estrictamente,
 separando ORQUESTACIÓN de CONFIGURACIÓN completamente.
 
-📚 DOCUMENTACIÓN TÉCNICA:
-- SRP aplicado: docs/IMPLEMETACION DE SRP EN PAQUETES.md
-- OCP mantenido: docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md
-
 🎯 RESPONSABILIDAD ÚNICA: ORQUESTACIÓN
 - SOLO coordina la ejecución entre componentes ya configurados
 - NO toma decisiones de configuración (delegadas al Configurador)
@@ -35,25 +31,6 @@ class Lanzador:
     📖 PATRÓN COORDINADOR:
     El Lanzador coordina la ejecución del flujo de procesamiento aplicando
     separación estricta de responsabilidades.
-
-    📚 REFERENCIAS TEÓRICAS:
-    - docs/IMPLEMETACION DE SRP EN PAQUETES.md: Evolución de responsabilidades
-    - docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md: Uso de polimorfismo
-
-    ✅ LO QUE SÍ HACE (SRP):
-    - Orquestar flujo: Adquisición → Procesamiento → Visualización
-    - Coordinar interacción entre componentes
-    - Mostrar progreso y resultados del procesamiento
-
-    ❌ LO QUE NO HACE (SRP):
-    - Decidir QUÉ adquisidor usar (→ Configurador)
-    - Decidir QUÉ procesador usar (→ Configurador)
-    - Contener lógica de negocio (→ Componentes específicos)
-    - Interactuar con usuario para configuración (→ Configurador)
-
-    🔄 BENEFICIO SRP:
-    Cambios en configuración NO afectan al Lanzador.
-    Cambios en lógica de procesamiento NO afectan al Lanzador.
     """
 
     @staticmethod
@@ -165,6 +142,13 @@ class Lanzador:
             repo_adquisicion.guardar(senial_original)
             print(f'✅ Señal persistida con ID: {senial_original.id}')
             print(f'   📁 Repositorio: ./datos_persistidos/adquisicion/')
+
+            # 📝 AUDITORÍA Y TRAZABILIDAD - Demostración de métodos ISP
+            print('\n📝 PASO 1.2 - Auditoría y trazabilidad de señal adquirida...')
+            repo_adquisicion.auditar(senial_original, f"Señal adquirida desde archivo con {senial_original.cantidad} valores")
+            repo_adquisicion.trazar(senial_original, "ADQUISICION", f"Lectura completada - {senial_original.comentario}")
+            print(f'✅ Auditoría registrada en: auditor.log')
+            print(f'✅ Traza registrada en: logger.log')
             Lanzador.tecla()
 
             # ✅ ORQUESTACIÓN: Paso 2 - Procesamiento
@@ -189,6 +173,13 @@ class Lanzador:
             repo_procesamiento.guardar(senial_procesada)
             print(f'✅ Señal procesada persistida con ID: {senial_procesada.id}')
             print(f'   📁 Repositorio: ./datos_persistidos/procesamiento/')
+
+            # 📝 AUDITORÍA Y TRAZABILIDAD - Demostración de métodos ISP
+            print('\n📝 PASO 2.2 - Auditoría y trazabilidad de señal procesada...')
+            repo_procesamiento.auditar(senial_procesada, f"Señal procesada con {type(procesador).__name__}")
+            repo_procesamiento.trazar(senial_procesada, "PROCESAMIENTO", f"Procesamiento completado - {senial_procesada.comentario}")
+            print(f'✅ Auditoría registrada en: auditor.log')
+            print(f'✅ Traza registrada en: logger.log')
             Lanzador.tecla()
 
             # ✅ ORQUESTACIÓN: Paso 3 - Recuperación desde repositorios
@@ -254,7 +245,8 @@ class Lanzador:
             print("   ✅ SRP: Una responsabilidad por clase/paquete")
             print("   ✅ OCP: Procesadores y contextos extensibles sin modificar lanzador")
             print("   ✅ LSP: Tipos de señal intercambiables (SenialBase aplicado)")
-            print("   ⚠️ ISP: Contextos con interfaz 'gorda' (persistir + recuperar)")
+            print("   ❌ ISP: VIOLACIÓN INTENCIONAL - BaseRepositorio con interfaz 'gorda'")
+            print("          (auditar + trazar obligatorios para TODOS los repositorios)")
             print("   ✅ DIP: Repositorio depende de abstracción BaseContexto (inyección)")
             print()
             print("🎯 PATRÓN REPOSITORY APLICADO:")
@@ -270,14 +262,6 @@ class Lanzador:
             print("   🎯 ORQUESTACIÓN PURA sin lógica de negocio")
             print("   🎯 PATRÓN REPOSITORY para abstracción de persistencia")
             print("="*60)
-
-            print()
-            print("📚 DOCUMENTACIÓN COMPLETA:")
-            print("   📄 docs/PATRON REPOSITORY EN PERSISTENCIA.md")
-            print("   📄 docs/VIOLACIONES DE LSP EN TIPOS DE SEÑAL.md")
-            print("   📄 docs/SOLUCION LSP CON ABSTRACCIONES.md")
-            print("   📄 docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md")
-            print("   📄 docs/INCORPORACION DEL CONFIGURADOR CON FACTORY PATTERN.md")
 
         except KeyboardInterrupt:
             print("\n\n⚠️  Proceso interrumpido por el usuario")
