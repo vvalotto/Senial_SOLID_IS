@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "descripcion": "Configuración externa del sistema de procesamiento de señales - Migrado desde XML",
+
+  "dir_recurso_datos": "./tmp/datos",
+
+  "senial_adquisidor": {
+    "tipo": "lista",
+    "tamanio": 20
+  },
+
+  "senial_procesador": {
+    "tipo": "pila",
+    "tamanio": 20
+  },
+
+  "adquisidor": {
+    "tipo": "senoidal",
+    "num_muestras": 20
+  },
+
+  "procesador": {
+    "tipo": "amplificador",
+    "umbral": 4
+  },
+
+  "contexto_adquisicion": {
+    "tipo": "archivo",
+    "recurso": "./tmp/datos/adquisicion"
+  },
+
+  "contexto_procesamiento": {
+    "tipo": "archivo",
+    "recurso": "./tmp/datos/procesamiento"
+  }
+}

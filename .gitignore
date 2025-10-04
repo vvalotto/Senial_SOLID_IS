@@ -135,8 +135,12 @@ datos_persistidos/
 # Build artifacts (genéricos - incluye packaging/build/)
 *.pyc
 
-# Packaging - Release directory (generado por build)
-packaging/release/
+# Packaging - Release directory (artefactos generados por build)
+# Versionar solo README.md y config/, NO wheels ni source
+packaging/release/wheels/
+packaging/release/source/
+packaging/release/docs/
+packaging/release/scripts/
 
 # Virtual environments de prueba
 test_env/
