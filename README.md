@@ -34,30 +34,6 @@ Este proyecto es un caso de estudio didáctico que demuestra la **evolución pro
 │   └── configurador.py        # Orquestador de Factories (8 métodos)
 └── 🚀 lanzador/               # Orquestador (SRP puro)
 ```
-
-### 🎯 DIP Completo - Configuración Externa JSON
-
-```
-config.json (Configuración Externa)
-    ↓
-CargadorConfig (Lee y valida JSON)
-    ↓
-Configurador (Orquesta Factories)
-    ↓
-Factories Especializados
-    ↓ ↓ ↓ ↓
-    FactorySenial
-    FactoryAdquisidor
-    FactoryProcesador
-    FactoryContexto
-    ↓
-Objetos Concretos (tipos determinados por JSON)
-    ↓
-Lanzador (Orquesta componentes SIN conocer tipos)
-```
-
-**🎯 Cambiar comportamiento del sistema**: Editar `config.json`, NO código fuente
-
 ---
 
 ## 📚 Evolución del Caso de Estudio
@@ -397,45 +373,8 @@ for senial in seniales:
 
 - **Cada paquete**: README.md específico con arquitectura y uso
 
-### 🎓 Casos de Uso Didácticos
 
-#### Demostración ISP (Violación → Corrección)
-
-```bash
-# Ver violación ISP (v5.3.0 - histórico)
-python demo_violacion_isp.py
-
-# Ver corrección ISP (v6.0.0 - actual)
-python test_correccion_isp.py
-```
-
-#### Demostración DIP (Configuración Externa)
-
-```bash
-# Ver configuración desde JSON
-python test_configuracion_externa.py
-
-# Cambiar config.json y ejecutar
-vim configurador/config.json
-python -m lanzador.lanzador
-```
-
-### 🧪 Testing
-
-```bash
-# Tests de Factories
-python test_factory_senial.py
-python test_factory_adquisidor.py
-python test_factory_procesador.py
-python test_factory_contexto.py
-
-# Tests de configuración
-python test_configuracion_externa.py
-
-# Test completo del sistema
-./test_app_completo.sh
-```
-
+python 
 ---
 
 ## 🎯 Valor Didáctico
@@ -583,12 +522,6 @@ Esta versión demuestra la **corrección del principio ISP** mediante interfaces
 
 4. **Auditoría Automática**: Interna al repositorio (no llamadas explícitas)
 
-### 📝 Verificación
-
-```bash
-# Ejecutar verificación de corrección ISP
-python test_correccion_isp.py
-```
 
 **Salida esperada**:
 - ✅ `RepositorioSenial`: Con auditoría y trazabilidad
@@ -608,6 +541,72 @@ Este proyecto demuestra la **aplicación completa de los 5 principios SOLID** en
 - **D**: **Configuración externa JSON determina TODAS las dependencias**
 
 **El valor principal de este caso de estudio es mostrar que SOLID no es solo teoría - es una filosofía de diseño práctica que resulta en sistemas flexibles, extensibles, y mantenibles.**
+
+---
+
+## 📦 Distribución y Paquetización
+
+Este proyecto incluye scripts completos de build e instalación para distribución multiplataforma.
+
+### Build del Release
+
+```bash
+# Linux/macOS
+./packaging/build/build_all.sh
+
+# Windows
+packaging\build\build_all.bat
+```
+
+**Genera**: 9 paquetes wheel + 9 distribuciones fuente en `packaging/release/`
+
+### Instalación desde Release
+
+```bash
+# Linux/macOS
+./packaging/install/install.sh
+
+# Windows
+packaging\install\install.bat
+```
+
+### Instalación Manual
+
+```bash
+# Instalar meta-paquete (instala todo el sistema)
+pip install packaging/release/wheels/senial_solid-6.0.0-py3-none-any.whl
+
+# O instalar componentes individuales
+pip install packaging/release/wheels/*.whl
+```
+
+### Uso Después de Instalación
+
+```bash
+# Comando directo
+senial-solid
+
+# O como módulo
+python -m lanzador.lanzador
+```
+
+### Estructura de Packaging
+
+El directorio `packaging/` contiene:
+- **metapackage/**: Meta-paquete senial-solid
+- **build/**: Scripts de construcción
+  - `verify_versions.py` - Verificar consistencia de versiones
+  - `build_all.sh` - Build completo (Linux/macOS)
+  - `build_all.bat` - Build completo (Windows)
+- **install/**: Scripts de instalación
+  - `install.sh` - Instalación automática (Linux/macOS)
+  - `install.bat` - Instalación automática (Windows)
+  - `verify_installation.py` - Verificar instalación
+- **release/**: Artefactos generados (wheels, source, config, docs)
+
+### Documentación de Paquetización
+
+Ver `docs/PLAN_PAQUETIZACION_PASO_A_PASO.md` para el plan completo de implementación de la infraestructura de build y distribución.
 
 ---
 

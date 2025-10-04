@@ -19,7 +19,8 @@ setup(
     author_email="vvalotto@gmail.com",
     url="https://github.com/vvalotto/Senial_SOLID_IS",
     license="MIT",
-    packages=find_packages(),
+    package_dir={'dominio_senial': '.'},
+    packages=['dominio_senial'],
     python_requires=">=3.8",
     install_requires=[
         # Sin dependencias externas - es el núcleo del dominio

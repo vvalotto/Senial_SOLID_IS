@@ -301,28 +301,6 @@ Senial_SOLID_IS/
 >
 > *"The Interface Segregation Principle states that clients should not be forced to depend upon interfaces that they do not use."*
 
-## 🔄 Próximos Pasos
-
-### Implementaciones Concretas Sugeridas
-
-```python
-# En persistidor_senial o módulo separado
-from supervisor import BaseAuditor, BaseTrazador
-
-class AuditorArchivo(BaseAuditor):
-    """Implementación que escribe en archivo"""
-    # ... implementación ...
-
-class TrazadorArchivo(BaseTrazador):
-    """Implementación que escribe en archivo"""
-    # ... implementación ...
-
-class AuditorNulo(BaseAuditor):
-    """Null Object Pattern - Sin efecto"""
-    def auditar(self, entidad, auditoria):
-        pass  # No hace nada
-```
-
 ### Configurador Actualizado
 
 ```python

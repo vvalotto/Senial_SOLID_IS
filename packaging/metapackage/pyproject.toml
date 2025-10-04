@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=40.8.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "senial-solid"
+version = "6.0.0"
+description = "Sistema completo de procesamiento de señales con principios SOLID"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [{name = "Victor Valotto", email = "vvalotto@gmail.com"}]
+keywords = ["solid", "principles", "signal-processing"]
+
+dependencies = ["lanzador>=6.0.0"]
+
+[project.scripts]
+senial-solid = "lanzador.lanzador:ejecutar"
+
+[project.urls]
+Homepage = "https://github.com/vvalotto/Senial_SOLID_IS"

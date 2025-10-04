@@ -11,7 +11,8 @@ setup(
     author_email="vvalotto@gmail.com",
     url="https://github.com/vvalotto/Senial_SOLID_IS",
     license="MIT",
-    packages=find_packages(),
+    package_dir={'lanzador': '.'},
+    packages=['lanzador'],
     python_requires=">=3.8",
     install_requires=[
         "dominio-senial>=5.0.0",

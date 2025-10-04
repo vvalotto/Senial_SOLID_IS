@@ -353,12 +353,8 @@ El Configurador **delega** la creación a estos factories:
 | Wrappers redundantes | Sí | No |
 | Flexibilidad | Baja | Alta |
 
-## 🧪 Testing
 
-```bash
-# Ejecutar test de configuración externa
-python3 test_configuracion_externa.py
-```
+
 
 Valida:
 - ✅ Carga correcta del JSON

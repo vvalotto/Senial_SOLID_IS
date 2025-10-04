@@ -216,42 +216,7 @@ procesador = Configurador.crear_procesador()  # ProcesadorAmplificador(4.0)
 # Opciones alternativas disponibles
 proc_amp = Configurador.crear_procesador_amplificador(2.0)      # ProcesadorAmplificador
 proc_umbral = Configurador.crear_procesador_con_umbral(3.5)    # ProcesadorConUmbral
-```
 
-## 🧪 Testing Polimórfico
-
-```bash
-# Ejecutar tests del paquete
-cd procesamiento_senial
-pytest tests/ -v
-
-# Tests específicos por implementación
-pytest tests/test_procesador.py::test_procesador_amplificador -v
-pytest tests/test_procesador.py::test_procesador_con_umbral -v
-```
-
-### Ejemplo de Test OCP
-
-```python
-import pytest
-from procesamiento_senial import BaseProcesador, ProcesadorAmplificador, ProcesadorConUmbral
-
-class TestOCP:
-    """Tests que validan el cumplimiento del OCP"""
-
-    def test_todos_procesadores_son_intercambiables(self):
-        """Valida que todos los procesadores cumplen LSP"""
-        procesadores = [
-            ProcesadorAmplificador(2.0),
-            ProcesadorConUmbral(3.0),
-            # ✅ FUTURO: Agregar ProcesadorSuavizado sin cambiar test
-        ]
-
-        for procesador in procesadores:
-            # ✅ POLIMORFISMO: Mismo interface para todos
-            assert isinstance(procesador, BaseProcesador)
-            assert hasattr(procesador, 'procesar')
-            assert hasattr(procesador, 'obtener_senial_procesada')
 ```
 
 ## 📈 Métricas de Extensibilidad

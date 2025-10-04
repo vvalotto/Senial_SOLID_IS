@@ -175,47 +175,6 @@ visualizador.mostrar_datos(senial_adquirida)   # ✅ Funciona
 visualizador.mostrar_datos(senial_procesada)   # ✅ Funciona
 ```
 
-## 🧪 Testing Polimórfico
-
-```bash
-# Ejecutar tests del paquete
-cd presentacion_senial
-pytest tests/ -v
-
-# Tests de polimorfismo LSP
-pytest tests/test_visualizador.py::test_polimorfismo_lsp -v
-```
-
-### Ejemplo de Test LSP
-
-```python
-import pytest
-from presentacion_senial import Visualizador
-from dominio_senial import SenialBase, SenialLista, SenialPila, SenialCola
-
-class TestLSP:
-    """Tests que validan el cumplimiento de LSP"""
-
-    @pytest.mark.parametrize("tipo_senial", [
-        SenialLista,
-        SenialPila,
-        SenialCola
-    ])
-    def test_visualizador_funciona_con_todos_tipos(self, tipo_senial):
-        """✅ El visualizador funciona con CUALQUIER tipo de señal"""
-        # Crear señal del tipo parametrizado
-        senial = tipo_senial()
-        senial.poner_valor(1.0)
-        senial.poner_valor(2.0)
-        senial.poner_valor(3.0)
-
-        # ✅ MISMO CÓDIGO para todos los tipos
-        visualizador = Visualizador()
-
-        # No debe lanzar excepciones
-        visualizador.mostrar_datos(senial)  # ✅ Funciona sin cambios
-```
-
 ## 📈 Beneficios del Diseño
 
 ### ✅ Extensibilidad sin Cambios

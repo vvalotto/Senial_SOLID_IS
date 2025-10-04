@@ -15,7 +15,8 @@ setup(
                      "externa JSON y delegación a Factories especializados (FactorySenial, "
                      "FactoryAdquisidor, FactoryProcesador, FactoryContexto)",
     author="Victor Valotto",
-    packages=find_packages(),
+    package_dir={'configurador': '.'},
+    packages=['configurador'],
     install_requires=[
         "dominio-senial>=5.0.0",
         "adquisicion-senial>=3.0.0",

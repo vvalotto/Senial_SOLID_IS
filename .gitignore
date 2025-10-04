@@ -131,3 +131,14 @@ cleanup_build_artifacts.py
 
 # Datos persistidos (generados por la aplicación)
 datos_persistidos/
+
+# Build artifacts (genéricos - incluye packaging/build/)
+*.pyc
+
+# Packaging - Release directory (generado por build)
+packaging/release/
+
+# Virtual environments de prueba
+test_env/
+senial_env/
+

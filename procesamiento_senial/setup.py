@@ -8,7 +8,8 @@ setup(
     author_email="vvalotto@gmail.com",
     url="https://github.com/vvalotto/Senial_SOLID_IS",
     license="MIT",
-    packages=find_packages(),
+    package_dir={'procesamiento_senial': '.'},
+    packages=['procesamiento_senial'],
     python_requires=">=3.8",
     install_requires=[
         "dominio-senial>=4.0.0",

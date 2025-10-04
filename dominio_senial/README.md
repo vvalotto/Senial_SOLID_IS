@@ -335,13 +335,6 @@ class Visualizador:
 - **`docs/VIOLACIONES DE LSP EN TIPOS DE SEÑAL.md`** - Análisis de problemas (versión anterior)
 - **`docs/SOLUCION LSP CON ABSTRACCIONES.md`** - Solución completa v4.0.0 ⭐
 
-## 🔄 Próximos Pasos
-
-- **ISP**: Interfaces específicas por responsabilidad
-- **Más implementaciones**: SenialDeque, SenialBuffer, etc.
-- **Persistencia**: Serialización/deserialización de señales
-
----
 
 **🏠 Paquete Dominio v4.0.0 - Victor Valotto**
 **📖 Proyecto Didáctico**: Demostración de Clean Architecture y SOLID
