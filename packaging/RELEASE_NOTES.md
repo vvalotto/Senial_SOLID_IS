@@ -32,9 +32,21 @@ curl -sSL https://raw.githubusercontent.com/vvalotto/Senial_SOLID_IS/main/packag
 
 ### Instalación Manual
 
+**IMPORTANTE**: Descarga TODOS los wheels del release e instálalos en orden:
+
 ```bash
-# Descargar wheels de este release
-# Luego instalar:
+# Opción A: Instalar todos a la vez (más simple)
+pip install *.whl
+
+# Opción B: Instalar en orden de dependencias
+pip install supervisor-1.0.0-py3-none-any.whl
+pip install dominio_senial-5.0.0-py3-none-any.whl
+pip install adquisicion_senial-3.0.0-py3-none-any.whl
+pip install procesamiento_senial-3.0.0-py3-none-any.whl
+pip install presentacion_senial-2.0.0-py3-none-any.whl
+pip install persistidor_senial-7.0.0-py3-none-any.whl
+pip install configurador-3.0.0-py3-none-any.whl
+pip install lanzador-6.0.0-py3-none-any.whl
 pip install senial_solid-6.0.0-py3-none-any.whl
 ```
 

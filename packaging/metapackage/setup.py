@@ -27,7 +27,9 @@ setup(
     packages=find_packages(),
     python_requires=">=3.8",
     install_requires=[
-        "lanzador>=6.0.0",
+        # Las dependencias deben instalarse manualmente desde los wheels
+        # porque no están publicados en PyPI.
+        # Ver: packaging/release/README.md para instrucciones
     ],
     entry_points={
         'console_scripts': [

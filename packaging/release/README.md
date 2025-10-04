@@ -37,11 +37,13 @@ REM O desde este directorio (packaging\release\)
 
 ## Instalación Manual
 
-```bash
-# Instalar meta-paquete (instala todo)
-pip install wheels/senial_solid-6.0.0-py3-none-any.whl
+**IMPORTANTE**: Debes instalar TODOS los paquetes en orden porque no están publicados en PyPI.
 
-# O instalar paquetes individuales en orden
+```bash
+# Opción A: Instalar todos a la vez (más simple)
+pip install wheels/*.whl
+
+# Opción B: Instalar en orden de dependencias
 pip install wheels/supervisor-1.0.0-py3-none-any.whl
 pip install wheels/dominio_senial-5.0.0-py3-none-any.whl
 pip install wheels/adquisicion_senial-3.0.0-py3-none-any.whl
@@ -50,7 +52,10 @@ pip install wheels/presentacion_senial-2.0.0-py3-none-any.whl
 pip install wheels/persistidor_senial-7.0.0-py3-none-any.whl
 pip install wheels/configurador-3.0.0-py3-none-any.whl
 pip install wheels/lanzador-6.0.0-py3-none-any.whl
+pip install wheels/senial_solid-6.0.0-py3-none-any.whl
 ```
+
+**Nota**: No puedes instalar solo `senial_solid-6.0.0-py3-none-any.whl` porque necesita los otros paquetes.
 
 ## Uso
 
