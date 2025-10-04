@@ -1,24 +1,32 @@
 """
-Paquete configurador - Factory Centralizado
+Paquete configurador - Factory Centralizado con Configuración Externa (DIP Aplicado)
 
-Este paquete contiene la clase responsable de crear y configurar
-todas las instancias de objetos que participan en la aplicación.
+Este paquete contiene las clases responsables de crear y configurar
+todas las instancias de objetos desde configuración externa (JSON).
 
 Aplicación de principios SOLID:
 - SRP: Responsabilidad única de gestionar creación de objetos
-- Preparación para DIP: Centralización que facilitará configuración externa futura
+- OCP: Extensible para nuevos tipos sin modificar código cliente
+- DIP: Configuración externa (JSON) determina las dependencias del sistema
 
 Arquitectura:
-- Configurador: Factory centralizado con configuración programática
+- Configurador: Factory centralizado que usa Factories especializados
+- CargadorConfig: Carga y valida configuración desde JSON
 
-Versión: 2.1.1 (documentación actualizada + limpieza de código)
+🔄 MIGRACIÓN XML → JSON:
+Versión 2.0.0: Configuración desde XML (minidom.parse)
+Versión 3.0.0: Configuración desde JSON con Factories especializados (ACTUAL)
+
+Versión: 3.0.0 - DIP Completo con Configuración Externa JSON
 Autor: Victor Valotto
 """
 
 from .configurador import Configurador
+from .cargador_config import CargadorConfig
 
-__version__ = "2.1.1"
+__version__ = "3.0.0"
 __author__ = "Victor Valotto"
 __all__ = [
-    'Configurador'
+    'Configurador',
+    'CargadorConfig'
 ]

@@ -1,12 +1,55 @@
-# Lanzador - Orquestador del Sistema
+# Lanzador - Orquestador del Sistema con DIP Completo
 
 **Versión**: 6.0.0
-**Patrón**: Orquestador/Coordinador
-**Responsabilidad**: Orquestar flujo de procesamiento de señales (auditoría automática interna)
+**Patrón**: Orquestador/Coordinador con Configuración Externa
+**Responsabilidad**: Orquestar flujo de procesamiento de señales (tipos determinados por JSON)
 
 ## 📋 Descripción
 
-Este paquete implementa la **responsabilidad de orquestación** en la arquitectura de procesamiento de señales, siguiendo los principios SOLID y Clean Architecture. Se encarga de coordinar el flujo completo del sistema integrando todos los componentes.
+Este paquete implementa la **responsabilidad de orquestación** en la arquitectura de procesamiento de señales, siguiendo **TODOS los principios SOLID** con **configuración externa JSON** (DIP completo). Se encarga de coordinar el flujo completo del sistema integrando todos los componentes.
+
+## 🎯 DIP Completo Aplicado (v6.0.0)
+
+**Configuración Externa JSON** determina TODAS las dependencias del sistema:
+
+### ¿Qué se configura desde JSON?
+
+✅ **Tipos de señales**: lista/pila/cola
+✅ **Tipos de adquisidores**: consola/archivo/senoidal
+✅ **Tipos de procesadores**: amplificador/umbral
+✅ **Tipos de contextos**: pickle/archivo
+✅ **Parámetros**: tamaños, umbrales, factores, rutas
+
+### Arquitectura DIP
+
+```
+config.json (Configuración Externa)
+    ↓
+Configurador.inicializar_configuracion()
+    ↓
+CargadorConfig (Lee JSON)
+    ↓
+Configurador (Delega a Factories)
+    ↓
+FactorySenial, FactoryAdquisidor, FactoryProcesador, FactoryContexto
+    ↓
+Objetos Concretos (tipos determinados por JSON)
+    ↓
+Lanzador (Orquesta componentes SIN conocer tipos concretos)
+```
+
+### Beneficio Principal
+
+**Cambiar comportamiento del sistema**: Editar `config.json`, NO código fuente
+
+```json
+{
+  "procesador": {
+    "tipo": "umbral",     // Cambiar a "amplificador" → Sin recompilar
+    "umbral": 100         // Cambiar a 50 → Sin modificar código
+  }
+}
+```
 
 ## 🎯 Responsabilidad Única (SRP)
 
@@ -23,42 +66,52 @@ Este paquete implementa la **responsabilidad de orquestación** en la arquitectu
 - Contener lógica de negocio (→ Componentes específicos)
 - Implementar persistencia (→ Repositorio/Contexto)
 
-## 🏗️ Arquitectura - Versión 5.2
+## 🏗️ Arquitectura - Versión 6.0.0 (DIP Completo)
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                         LANZADOR                            │
-│                  (Orquestador - SRP Puro)                   │
-│                                                             │
-│  ┌─────────────┐  ┌─────────────┐  ┌──────────────────┐   │
-│  │ Adquisidor  │  │ Procesador  │  │  Visualizador    │   │
-│  └─────────────┘  └─────────────┘  └──────────────────┘   │
-│                                                             │
-│  ┌─────────────────────────────────────────────────┐       │
-│  │           PATRÓN REPOSITORY (v5.2)              │       │
-│  │  ┌──────────────────┐  ┌──────────────────┐    │       │
-│  │  │ Repositorio      │  │ Repositorio      │    │       │
-│  │  │ Adquisición      │  │ Procesamiento    │    │       │
-│  │  └──────────────────┘  └──────────────────┘    │       │
-│  │          ▼                      ▼               │       │
-│  │  ┌──────────────────┐  ┌──────────────────┐    │       │
-│  │  │ ContextoArchivo  │  │ ContextoPickle   │    │       │
-│  │  │ (texto .dat)     │  │ (binario .pickle)│    │       │
-│  │  └──────────────────┘  └──────────────────┘    │       │
-│  └─────────────────────────────────────────────────┘       │
-│                                                             │
-│              ▲                                              │
-│              │  Delegación (Factory Pattern)               │
-│              │                                              │
-│  ┌───────────┴──────────────────────────────────────┐      │
-│  │              CONFIGURADOR                         │      │
-│  │  - crear_adquisidor()                             │      │
-│  │  - crear_procesador()                             │      │
-│  │  - crear_visualizador()                           │      │
-│  │  - crear_repositorio_adquisicion()                │      │
-│  │  - crear_repositorio_procesamiento()              │      │
-│  └───────────────────────────────────────────────────┘      │
-└─────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────┐
+│                   config.json                                  │
+│            (Configuración Externa - DIP)                       │
+│   Determina: tipos, parámetros, recursos                      │
+└───────────────────────────┬────────────────────────────────────┘
+                            ↓
+┌───────────────────────────────────────────────────────────────┐
+│                   CargadorConfig                              │
+│             (Lee y valida JSON)                               │
+└───────────────────────────┬───────────────────────────────────┘
+                            ↓
+┌───────────────────────────────────────────────────────────────┐
+│                   CONFIGURADOR                                │
+│     inicializar_configuracion() + Delegación a Factories     │
+│  ┌─────────────────────────────────────────────────────┐     │
+│  │  FactorySenial  FactoryAdquisidor  FactoryProcesador│     │
+│  │              FactoryContexto                         │     │
+│  └─────────────────────────────────────────────────────┘     │
+└───────────────────────────┬───────────────────────────────────┘
+                            ↓
+┌────────────────────────────────────────────────────────────────┐
+│                         LANZADOR                               │
+│            (Orquestador - SRP Puro + DIP Completo)             │
+│  NO conoce tipos concretos, solo métodos del Configurador     │
+│                                                                │
+│  ┌─────────────┐  ┌─────────────┐  ┌──────────────────┐      │
+│  │ Adquisidor  │  │ Procesador  │  │  Visualizador    │      │
+│  │ (tipo JSON) │  │ (tipo JSON) │  │                  │      │
+│  └─────────────┘  └─────────────┘  └──────────────────┘      │
+│                                                                │
+│  ┌──────────────────────────────────────────────────┐         │
+│  │       PATRÓN REPOSITORY + FACTORY                │         │
+│  │  ┌──────────────────┐  ┌──────────────────┐     │         │
+│  │  │ Repositorio      │  │ Repositorio      │     │         │
+│  │  │ Adquisición      │  │ Procesamiento    │     │         │
+│  │  └────────┬─────────┘  └─────────┬────────┘     │         │
+│  │           ↓                       ↓              │         │
+│  │  ┌──────────────────┐  ┌──────────────────┐     │         │
+│  │  │ ContextoArchivo  │  │ ContextoPickle   │     │         │
+│  │  │ (desde JSON)     │  │ (desde JSON)     │     │         │
+│  │  └──────────────────┘  └──────────────────┘     │         │
+│  └──────────────────────────────────────────────────┘         │
+└────────────────────────────────────────────────────────────────┘
 ```
 
 ## 📦 Contenido
@@ -254,19 +307,21 @@ visualizador.mostrar_datos(senial_procesada_recuperada)
 
 ```python
 install_requires=[
-    "dominio-senial>=4.0.0",         # Entidades base (SenialBase)
-    "adquisicion-senial>=2.1.0",     # Captura de datos
-    "procesamiento-senial>=2.1.0",   # Transformación de señales
+    "dominio-senial>=5.0.0",         # Entidades base (SenialBase)
+    "adquisicion-senial>=3.0.0",     # Captura de datos con Factories
+    "procesamiento-senial>=3.0.0",   # Transformación de señales con Factories
     "presentacion-senial>=2.0.0",    # Visualización
-    "configurador>=2.3.0",           # Factory con Repository Pattern
-    "persistidor-senial>=6.0.0",     # Repository + Contextos (ISP corregido)
+    "configurador>=3.0.0",           # DIP Completo: JSON + CargadorConfig + Factories
+    "persistidor-senial>=7.0.0",     # Repository + Contextos + FactoryContexto (ISP corregido)
     "supervisor>=1.0.0",             # Interfaces segregadas (BaseAuditor, BaseTrazador)
 ]
 ```
 
 ## 📚 Documentación Relacionada
 
+- **DIP con Configuración Externa**: `docs/APLICACION_DIP_CONFIGURACION_EXTERNA.md`
 - **Patrón Repository**: `docs/PATRON REPOSITORY EN PERSISTENCIA.md`
+- **Corrección ISP**: `docs/CORRECCION ISP CON INTERFACES SEGREGADAS.md`
 - **Solución LSP**: `docs/SOLUCION LSP CON ABSTRACCIONES.md`
 - **Implementación OCP**: `docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md`
 - **SRP en Paquetes**: `docs/IMPLEMETACION DE SRP EN PAQUETES.md`
@@ -278,27 +333,37 @@ install_requires=[
 #!/usr/bin/env python3
 from lanzador import Lanzador
 
-# Ejecutar sistema completo
-# - Adquiere señal desde usuario
-# - Procesa con algoritmo configurado
-# - Persiste en repositorios (archivo + pickle)
+# Ejecutar sistema completo con DIP (configuración externa JSON)
+# - Inicializa configuración desde config.json (DIP)
+# - Adquiere señal con tipo/fuente determinados por JSON
+# - Procesa con algoritmo/parámetros determinados por JSON
+# - Persiste en repositorios con contextos determinados por JSON
 # - Recupera desde repositorios
 # - Visualiza señales recuperadas
+#
+# 🎯 DIP: Cambiar comportamiento → Editar config.json, NO código
 Lanzador.ejecutar()
 ```
 
 ## 📋 Resumen de Cambios v6.0.0
 
 ### Agregado (v6.0.0)
+- ✅ **DIP Completo**: Configuración externa JSON determina TODAS las dependencias
+- ✅ **Inicialización JSON**: Paso 0 - `Configurador.inicializar_configuracion()`
+- ✅ **CargadorConfig**: Singleton en Configurador para leer config.json
 - ✅ **ISP Corregido**: Interfaces segregadas (BaseAuditor, BaseTrazador en paquete supervisor)
 - ✅ **Auditoría automática**: Interna al repositorio (no llamadas explícitas)
 - ✅ **SRP mejorado**: Lanzador NO llama auditar() ni trazar()
-- 📦 Dependencia: `supervisor>=1.0.0`
+- 📦 Dependencia: `configurador>=3.0.0` (DIP con JSON + CargadorConfig + Factories)
+- 📦 Dependencia: `supervisor>=1.0.0` (Interfaces segregadas ISP)
 
 ### Modificado (v6.0.0)
+- 🔄 Flujo de ejecución: Agregado PASO 0 - Inicialización de configuración externa JSON
 - 🔄 Lanzador simplificado: Eliminadas llamadas explícitas a auditar/trazar
+- 🔄 Mensajes DIP: "Todas las dependencias determinadas externamente (DIP)"
 - 🔄 Mensajes: Indica "Auditoría y trazabilidad: Registradas automáticamente"
-- 🔄 Resumen SOLID: ISP marcado como ✅ (antes ❌)
+- 🔄 Resumen final: Enfatiza "CONFIGURACIÓN EXTERNA (JSON) DETERMINA TODAS LAS DEPENDENCIAS"
+- 🔄 Resumen SOLID: DIP marcado como ✅ COMPLETO, ISP marcado como ✅ (antes ❌)
 
 ### Agregado (v5.3.0)
 - 📝 Auditoría y trazabilidad: Llamadas a `auditar()` y `trazar()` para señales (ahora removidas)
@@ -312,11 +377,15 @@ Lanzador.ejecutar()
 - ✅ Reconstrucción automática de señales
 
 ### Estado Actual
-- ✅ **SRP**: Lanzador con responsabilidad única (orquestar)
-- ✅ **OCP**: Extensible sin modificación
-- ✅ **LSP**: Tipos de señal totalmente intercambiables
-- ✅ **ISP**: Interfaces segregadas (v6.0.0)
-- ✅ **DIP**: Dependencias inyectadas vía Configurador
+- ✅ **SRP**: Lanzador con responsabilidad única (orquestar), Configurador lee JSON y delega a Factories
+- ✅ **OCP**: Extensible editando config.json, sin modificar código fuente
+- ✅ **LSP**: Tipos de señal totalmente intercambiables vía SenialBase
+- ✅ **ISP**: Interfaces segregadas - BaseAuditor y BaseTrazador separados (v6.0.0)
+- ✅ **DIP COMPLETO**: Configuración externa JSON determina TODAS las dependencias (v6.0.0)
+  - CargadorConfig lee config.json
+  - Configurador delega a FactorySenial, FactoryAdquisidor, FactoryProcesador, FactoryContexto
+  - Lanzador NO conoce tipos concretos, solo abstracciones
+  - Cambiar comportamiento: Editar JSON, NO código
 
 ---
 

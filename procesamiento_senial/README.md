@@ -1,10 +1,10 @@
-# ⚙️ Procesamiento Señal - OCP para Algoritmos de Transformación
+# ⚙️ Procesamiento Señal - Factory Pattern + Configuración Externa
 
-**Versión**: 2.1.0 - OCP + DIP Aplicado
+**Versión**: 3.0.0 - Factory + DIP + Configuración Externa JSON
 **Autor**: Victor Valotto
-**Responsabilidad**: Procesamiento y transformación de señales usando Strategy Pattern
+**Responsabilidad**: Procesamiento y transformación de señales usando Strategy + Factory Pattern
 
-Paquete independiente que implementa **procesamiento extensible** de señales digitales con diferentes algoritmos, aplicando el principio Open/Closed para máxima flexibilidad.
+Paquete independiente que implementa **procesamiento extensible** de señales digitales con **Factory especializado** e **inyección de dependencias** preparado para configuración externa JSON.
 
 ## 📋 Descripción
 
@@ -36,10 +36,12 @@ Este paquete implementa la **capa de procesamiento** usando el **patrón Strateg
 
 ```
 procesamiento_senial/
-├── __init__.py          # Exporta BaseProcesador, ProcesadorAmplificador, ProcesadorConUmbral
-├── procesador.py        # Implementación de Strategy Pattern
-├── setup.py            # Configuración del paquete independiente
-└── tests/              # Tests unitarios polimórficos
+├── __init__.py                # Exporta BaseProcesador, Procesadores, FactoryProcesador
+├── procesador.py              # Implementación de Strategy Pattern
+├── factory_procesador.py      # ✨ Factory especializado con DIP
+├── setup.py                  # Configuración del paquete independiente
+├── README.md                 # Documentación completa
+└── tests/                    # Tests unitarios polimórficos
     └── test_procesador.py
 ```
 

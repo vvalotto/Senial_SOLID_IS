@@ -11,8 +11,8 @@ else:
 
 setup(
     name="adquisicion-senial",
-    version="2.1.0",
-    description="Adquisición de datos con soporte polimórfico para SenialBase",
+    version="3.0.0",
+    description="Factory Pattern + Configuración Externa para adquisición de datos con DIP",
     long_description=README,
     long_description_content_type="text/markdown",
     author="Victor Valotto",

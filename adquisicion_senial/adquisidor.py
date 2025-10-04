@@ -77,7 +77,7 @@ class BaseAdquisidor(metaclass=ABCMeta):
     @abstractmethod
     def leer_senial(self):
         """
-        🔄 MÉTODO ABSTRACTO - Punto de extensión OCP.
+        🔄 METODO ABSTRACTO - Punto de extensión OCP.
 
         📚 REFERENCIA ARQUITECTÓNICA:
         docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md - "Abstract Methods"
@@ -119,7 +119,7 @@ class AdquisidorConsola(BaseAdquisidor):
 
     🔄 EJEMPLO POLIMORFISMO:
     def usar_adquisidor(adq: BaseAdquisidor):  # ← Funciona con CUALQUIERA
-        adq.leer_senial()  # ← Este método funciona automáticamente
+        adq.leer_senial()  # ← Este metodo funciona automáticamente
         return adq.obtener_senial_adquirida()
     """
     @staticmethod
@@ -202,3 +202,72 @@ class AdquisidorArchivo(BaseAdquisidor):
             print(f"❌ Error de lectura: {e}")
 
         print(f"✅ Adquisición completada: {self._senial.obtener_tamanio()} muestras leídas")
+
+
+class AdquisidorSenoidal(BaseAdquisidor):
+    """
+    🌊 ESTRATEGIA CONCRETA - Generador de señal senoidal sintética.
+
+    📚 REFERENCIA OCP:
+    Implementación concreta que genera valores senoidales calculados
+    matemáticamente, útil para testing y simulaciones.
+
+    🎯 RESPONSABILIDAD ESPECÍFICA (SRP):
+    Generar una señal senoidal sintética con amplitud y frecuencia predefinidas,
+    útil para pruebas sin necesidad de datos reales.
+
+    ✅ CUMPLE LSP:
+    - Intercambiable con cualquier BaseAdquisidor
+    - Respeta el contrato: llenar self._senial con datos válidos
+    - Comportamiento predecible: generación determinística
+
+    ⚠️ NOTA: Constructor recibe numero_muestras para consistencia con BaseAdquisidor
+    """
+    def __init__(self, numero_muestras: int = 10):
+        """
+        Inicializa el generador de señal senoidal.
+
+        ✅ CORRECCIÓN: Ahora consistente con BaseAdquisidor
+        - Recibe numero_muestras (no señal)
+        - La señal será inyectada por el factory
+
+        :param numero_muestras: Cantidad de muestras a generar (default: 10)
+        """
+        super().__init__(numero_muestras)
+        self._valor = 0.0
+        self._i = 0
+
+    def _leer_dato_entrada(self):
+        """
+        Genera un valor senoidal calculado matemáticamente.
+
+        🔢 FÓRMULA:
+        valor = sin((i / num_muestras) * 2π) * 10
+
+        :return: Valor senoidal calculado
+        """
+        import math
+        # Generar valor senoidal con amplitud 10
+        self._valor = math.sin((float(self._i) / float(self._numero_muestras)) * 2 * math.pi) * 10
+        self._i += 1
+        return self._valor
+
+    def leer_senial(self):
+        """
+        Implementa la generación de señal senoidal.
+
+        Genera la cantidad especificada de muestras senoidales y las
+        almacena en la señal inyectada.
+        """
+        print(f'🌊 Generación de señal senoidal ({self._numero_muestras} muestras)')
+        i = 0
+        try:
+            while i < self._numero_muestras:
+                valor = self._leer_dato_entrada()
+                self._senial.poner_valor(valor)
+                print(f"  Muestra {i}: {valor:.2f}")
+                i += 1
+            print(f"✅ Generación completada: {self._senial.obtener_tamanio()} muestras")
+        except Exception as ex:
+            print(f"❌ Error en la generación de datos: {ex}")
+            raise

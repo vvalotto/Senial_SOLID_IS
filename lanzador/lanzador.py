@@ -1,21 +1,25 @@
 #!/usr/bin/env python3
 """
-Lanzador principal del sistema que demuestra SRP PURO aplicado.
+Lanzador principal del sistema que demuestra SRP PURO + DIP COMPLETO aplicado.
 
 Este módulo implementa el patrón COORDINADOR que aplica SRP estrictamente,
 separando ORQUESTACIÓN de CONFIGURACIÓN completamente.
 
 🎯 RESPONSABILIDAD ÚNICA: ORQUESTACIÓN
 - SOLO coordina la ejecución entre componentes ya configurados
-- NO toma decisiones de configuración (delegadas al Configurador)
+- NO toma decisiones de configuración (delegadas al Configurador + JSON)
 - NO interactúa con usuario para configuración
 - NO contiene lógica de negocio
 
 🏗️ PATRÓN IMPLEMENTADO:
-Coordinador/Orquestador que usa Factory Centralizado para obtener
-componentes pre-configurados y ejecuta el flujo de procesamiento.
+Coordinador/Orquestador que usa Factory Centralizado con configuración
+externa (JSON) para obtener componentes pre-configurados.
 
-Versión: 5.2 - SRP + Patrón Repository con DIP
+🔄 DIP APLICADO:
+Todas las dependencias se determinan desde config.json - el lanzador
+ni siquiera conoce qué tipos concretos se usan.
+
+Versión: 6.0.0 - SRP + DIP Completo con Configuración Externa JSON
 Autor: Victor Valotto
 """
 import platform
@@ -59,17 +63,18 @@ class Lanzador:
     @staticmethod
     def ejecutar():
         """
-        🚀 METODO PRINCIPAL - Orquesta el flujo completo aplicando SRP puro.
+        🚀 METODO PRINCIPAL - Orquesta el flujo completo aplicando SRP puro + DIP completo.
 
         📖 RESPONSABILIDAD ÚNICA:
         Coordinar la interacción entre componentes sin tomar decisiones
-        de configuración (delegadas al Configurador).
+        de configuración (delegadas al Configurador + config.json).
 
         📚 REFERENCIA ARQUITECTÓNICA:
-        docs/IMPLEMETACION DE SRP EN PAQUETES.md - Sección "Factory Centralizado"
-        Demuestra separación total entre orquestación y configuración.
+        - docs/IMPLEMETACION DE SRP EN PAQUETES.md - SRP en Factory Centralizado
+        - docs/APLICACION_DIP_CONFIGURACION_EXTERNA.md - DIP con JSON
 
         🔄 FLUJO ORQUESTADO:
+        0. Inicializar configuración externa (config.json) ← NUEVO v6.0.0
         1. Obtener componentes configurados (SIN decidir cuáles)
         2. Obtener repositorios configurados (patrón Repository + DIP)
         3. Ejecutar adquisición de datos → Guardar en repositorio
@@ -78,12 +83,18 @@ class Lanzador:
         6. Ejecutar visualización de señales recuperadas
         7. Mostrar resumen de principios aplicados
 
-        ✅ SRP DEMOSTRADO:
+        ✅ SRP + DIP DEMOSTRADO:
         Este metodo NO cambia cuando:
-        - Se agrega nuevo tipo de adquisidor
-        - Se agrega nuevo tipo de procesador
-        - Se cambia configuración de componentes
-        - Se cambia estrategia de persistencia (Pickle ↔ Archivo)
+        - Se cambia tipo de señal en JSON (lista/pila/cola)
+        - Se cambia tipo de adquisidor en JSON (consola/archivo/senoidal)
+        - Se cambia tipo de procesador en JSON (amplificador/umbral)
+        - Se cambia estrategia de persistencia en JSON (pickle/archivo)
+        - Se cambian parámetros en JSON (tamaños, umbrales, factores)
+
+        🎯 DIP COMPLETO:
+        - Configuración externa determina TODAS las dependencias
+        - Lanzador NO conoce tipos concretos
+        - Solo conoce abstracciones y métodos del Configurador
 
         🎯 PATRÓN REPOSITORY APLICADO:
         - Repositorio abstrae la persistencia del dominio
@@ -91,11 +102,26 @@ class Lanzador:
         - API semántica: guardar() / obtener()
         """
         try:
+            # 🎯 DIP - PASO 0: Inicializar configuración externa (JSON)
+            print("\n" + "="*70)
+            print("🔧 INICIALIZANDO CONFIGURACIÓN EXTERNA")
+            print("="*70)
+            try:
+                # No se pasa ruta - usa config.json en directorio del módulo configurador
+                # Funciona independientemente de desde dónde se ejecute el lanzador
+                Configurador.inicializar_configuracion()
+                print("📋 Configuración cargada exitosamente desde config.json")
+                print("✅ Todas las dependencias determinadas externamente (DIP)")
+            except FileNotFoundError:
+                print("⚠️  config.json no encontrado - usando configuración por defecto")
+            print()
+
             # ✅ SRP PURO: Solo obtener componentes configurados (sin decidir cuáles)
             # 📚 Ver docs/IMPLEMETACION DE SRP EN PAQUETES.md - Delegación al Configurador
-            adquisidor = Configurador.crear_adquisidor()    # Con señal inyectada
-            procesador = Configurador.crear_procesador()    # Con señal inyectada
-            visualizador = Configurador.crear_visualizador()  # Configuración centralizada
+            # 🎯 DIP: Tipos determinados por config.json, no por código
+            adquisidor = Configurador.crear_adquisidor()    # Tipo desde JSON
+            procesador = Configurador.crear_procesador()    # Tipo desde JSON
+            visualizador = Configurador.crear_visualizador()  # Simple
 
             # 🔄 INFORMACIÓN DIAGNÓSTICA: Verificar tipo de señal inyectado
             # Usamos métodos de acceso para respetar encapsulación
@@ -109,13 +135,18 @@ class Lanzador:
             repo_procesamiento = Configurador.crear_repositorio_procesamiento()
 
             Lanzador.limpiar_pantalla()
-            print("=== DEMOSTRACIÓN SRP + REPOSITORY PATTERN - PROCESAMIENTO DE SEÑALES v5.2 ===")
-            print("Lanzador con responsabilidad única: ORQUESTACIÓN")
-            print("Configurador con responsabilidad única: CREACIÓN + INYECCIÓN + COMPOSICIÓN")
+            print("=" * 80)
+            print("DEMOSTRACIÓN SOLID COMPLETO - PROCESAMIENTO DE SEÑALES v6.0.0")
+            print("DIP Aplicado: Configuración Externa JSON + Factories Especializados")
+            print("=" * 80)
+            print("Lanzador: Responsabilidad única → ORQUESTACIÓN")
+            print("Configurador: Responsabilidad única → LEER JSON + DELEGAR A FACTORIES")
+            print("Factories: FactorySenial, FactoryAdquisidor, FactoryProcesador, FactoryContexto")
             print()
-            print("🔄 INYECCIÓN DE DEPENDENCIAS INDEPENDIENTE:")
+            print("🎯 CONFIGURACIÓN DESDE JSON (DIP):")
             print(f"   • Adquisidor configurado con señal: {tipo_senial_adquisidor}")
             print(f"   • Procesador configurado con señal: {tipo_senial_procesador}")
+            print(f"   • Tipos determinados por config.json, NO por código hardcoded")
 
             # ✅ ORQUESTACIÓN: Paso 1 - Adquisición en señal configurada
             print("📡 PASO 1 - ADQUISICIÓN DE LA SEÑAL")
@@ -217,39 +248,60 @@ class Lanzador:
             print("🔸 SEÑAL PROCESADA (recuperada desde archivo):")
             visualizador.mostrar_datos(senial_procesada_recuperada)
 
-            # ✅ RESULTADO: Patrón Repository + SOLID aplicados correctamente
-            print(f"\n🎉 DEMOSTRACIÓN PATRÓN REPOSITORY + SOLID COMPLETADA")
-            print("="*60)
+            # ✅ RESULTADO: DIP Completo + SOLID aplicados correctamente
+            print(f"\n🎉 DEMOSTRACIÓN SOLID COMPLETO CON DIP - PROCESAMIENTO SEÑALES v6.0.0")
+            print("="*80)
             print("✅ RESPONSABILIDADES PERFECTAMENTE SEPARADAS:")
             print("   • Lanzador: SOLO orquestar el flujo de procesamiento")
-            print("   • Configurador: SOLO crear y configurar objetos + composición")
+            print("   • Configurador: SOLO leer JSON + delegar a Factories")
+            print("   • CargadorConfig: SOLO leer y validar config.json")
+            print("   • FactorySenial: SOLO crear señales según tipo")
+            print("   • FactoryAdquisidor: SOLO crear adquisidores con señal inyectada")
+            print("   • FactoryProcesador: SOLO crear procesadores con señal inyectada")
+            print("   • FactoryContexto: SOLO crear contextos de persistencia")
             print("   • Repositorio: SOLO gestionar persistencia de entidades (dominio)")
             print("   • Contexto: SOLO implementar estrategia de almacenamiento (infra)")
             print("   • Adquisidor: SOLO capturar datos de entrada")
             print("   • Procesador: SOLO transformar señales")
             print("   • Visualizador: SOLO mostrar resultados")
             print()
-            print("🏗️  PRINCIPIOS SOLID DEMOSTRADOS:")
-            print("   ✅ SRP: Una responsabilidad por clase/paquete")
-            print("   ✅ OCP: Procesadores y contextos extensibles sin modificar lanzador")
+            print("🏗️  PRINCIPIOS SOLID DEMOSTRADOS (COMPLETOS):")
+            print("   ✅ SRP: Una responsabilidad por clase/paquete/factory")
+            print("   ✅ OCP: Extensible para nuevos tipos editando JSON, sin modificar código")
             print("   ✅ LSP: Tipos de señal intercambiables (SenialBase aplicado)")
             print("   ✅ ISP: Interfaces segregadas - BaseAuditor y BaseTrazador independientes")
-            print("          (solo RepositorioSenial implementa auditoría/trazabilidad)")
-            print("   ✅ DIP: Repositorio depende de abstracción BaseContexto (inyección)")
+            print("   ✅ DIP: **CONFIGURACIÓN EXTERNA (JSON) DETERMINA TODAS LAS DEPENDENCIAS**")
+            print("          - Repositorio depende de abstracción BaseContexto")
+            print("          - Adquisidor/Procesador reciben señales inyectadas")
+            print("          - Configurador delega a Factories especializados")
+            print("          - Sistema completamente configurable sin tocar código")
             print()
-            print("🎯 PATRÓN REPOSITORY APLICADO:")
+            print("🎯 ARQUITECTURA DIP APLICADA:")
+            print("   config.json → CargadorConfig → Configurador → Factories → Objetos")
+            print("   • Tipos de señales: determinados por JSON")
+            print("   • Tipos de adquisidores: determinados por JSON")
+            print("   • Tipos de procesadores: determinados por JSON")
+            print("   • Tipos de contextos: determinados por JSON")
+            print("   • Parámetros: determinados por JSON")
+            print()
+            print("🎯 PATRÓN REPOSITORY + FACTORY:")
             print("   • Separación dominio (Repositorio) / infraestructura (Contexto)")
-            print("   • API semántica: guardar() / obtener() en lugar de persistir() / recuperar()")
-            print("   • Inyección de dependencias: Repositorio(contexto)")
+            print("   • API semántica: guardar() / obtener()")
+            print("   • Factories especializados: FactorySenial, FactoryAdquisidor, etc.")
+            print("   • Inyección de dependencias: Repositorio(contexto), Adquisidor(señal)")
             print("   • Estrategias intercambiables: ContextoPickle / ContextoArchivo")
             print()
             print("📚 LECCIÓN APRENDIDA:")
+            print("   🎯 DIP COMPLETO: Configuración externa determina TODAS las dependencias")
             print("   🎯 SEPARACIÓN TOTAL de responsabilidades (SRP)")
-            print("   🎯 INYECCIÓN DE DEPENDENCIAS explícita (DIP)")
-            print("   🎯 CONFIGURACIÓN CENTRALIZADA sin input del usuario")
+            print("   🎯 FACTORIES ESPECIALIZADOS para cada dominio")
+            print("   🎯 CONFIGURACIÓN JSON sin modificar código fuente")
             print("   🎯 ORQUESTACIÓN PURA sin lógica de negocio")
-            print("   🎯 PATRÓN REPOSITORY para abstracción de persistencia")
-            print("="*60)
+            print("   🎯 CAMBIOS EN COMPORTAMIENTO: Editar JSON, no código")
+            print()
+            print("📄 CONFIGURACIÓN UTILIZADA: configurador/config.json (ruta dinámica desde módulo)")
+            print("📖 DOCUMENTACIÓN: docs/APLICACION_DIP_CONFIGURACION_EXTERNA.md")
+            print("="*80)
 
         except KeyboardInterrupt:
             print("\n\n⚠️  Proceso interrumpido por el usuario")

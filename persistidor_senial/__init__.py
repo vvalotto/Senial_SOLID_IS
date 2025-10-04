@@ -1,11 +1,11 @@
 """
-Paquete de persistencia de señales digitales
+Paquete de persistencia de señales digitales + Factory Pattern
 
 Proporciona funcionalidad para guardar y recuperar señales en diferentes formatos.
 
 🎯 OBJETIVO DIDÁCTICO:
 Este paquete demuestra la aplicación correcta del principio ISP (Interface Segregation Principle)
-mediante interfaces segregadas y herencia múltiple.
+mediante interfaces segregadas y herencia múltiple + Factory Pattern para creación configurable.
 
 ✅ ISP CORRECTAMENTE APLICADO (v6.0.0):
 - BaseRepositorio: Solo métodos básicos (guardar, obtener)
@@ -19,27 +19,33 @@ mediante interfaces segregadas y herencia múltiple.
 - OCP: Extensible sin modificación (nuevos contextos)
 - LSP: Contextos intercambiables
 - ISP: Interfaces segregadas según necesidades reales
-- DIP: Repositorio depende de abstracción BaseContexto (inyección)
+- DIP: Repositorio depende de abstracción BaseContexto (inyección) + Configuración externa
 
-Clases principales - Patrón Repository:
+Clases principales - Patrón Repository + Factory:
 - BaseRepositorio: Abstracción de dominio básica (guardar, obtener)
 - RepositorioSenial: Repositorio con auditoría/trazabilidad (herencia múltiple)
 - RepositorioUsuario: Repositorio simple (solo persistencia)
 - BaseContexto: Abstracción de infraestructura (Strategy Pattern)
 - ContextoPickle: Persistencia binaria con pickle
 - ContextoArchivo: Persistencia en texto plano
+- FactoryContexto: Factory especializado para creación según config externa
 - MapeadorArchivo: Serialización/deserialización para archivos de texto
 
-Versión: 6.0.0 - ISP corregido con interfaces segregadas (supervisor package)
+✨ NUEVO v7.0.0:
+- Factory Pattern para creación de contextos
+- Preparado para configuración JSON externa
+
+Versión: 7.0.0 - ISP + Factory Pattern + Configuración Externa
 Autor: Victor Valotto
 """
 
 __author__ = 'Victor Valotto'
-__version__ = '6.0.0'
+__version__ = '7.0.0'
 
 from persistidor_senial.contexto import BaseContexto, ContextoPickle, ContextoArchivo
 from persistidor_senial.repositorio import BaseRepositorio, RepositorioSenial, RepositorioUsuario
 from persistidor_senial.mapeador import Mapeador, MapeadorArchivo
+from persistidor_senial.factory_contexto import FactoryContexto
 
 # Alias de compatibilidad con código legacy (deprecados)
 BasePersistidor = BaseContexto
@@ -54,6 +60,8 @@ __all__ = [
     'BaseRepositorio',
     'RepositorioSenial',
     'RepositorioUsuario',
+    # Factory
+    'FactoryContexto',
     # Mapeadores
     'Mapeador',
     'MapeadorArchivo',

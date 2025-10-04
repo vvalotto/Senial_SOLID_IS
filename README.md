@@ -1,34 +1,64 @@
 # Principios SOLID - Caso de Estudio Avanzado
 
-**Versión**: 5.3.0 - Violación ISP Intencional (Didáctica)
+**Versión**: 6.0.0 - SOLID Completo con DIP Aplicado (Configuración Externa JSON)
 **Autor**: Victor Valotto
 **Objetivo**: Demostración práctica y didáctica de principios SOLID aplicados a arquitectura de software
 
-Este proyecto es un caso de estudio didáctico que demuestra la **evolución progresiva** de un sistema de procesamiento de señales digitales aplicando principios SOLID, desde violaciones iniciales hasta arquitectura limpia y extensible.
+Este proyecto es un caso de estudio didáctico que demuestra la **evolución progresiva** de un sistema de procesamiento de señales digitales aplicando principios SOLID, desde violaciones iniciales hasta arquitectura limpia con **configuración externa JSON** y **Factories especializados**.
 
-⚠️ **RAMA ACTUAL: NoISP** - Contiene violación INTENCIONAL de ISP para fines didácticos.
+✅ **VERSIÓN ACTUAL: v6.0.0** - Todos los principios SOLID correctamente aplicados con DIP completo.
 
 ## 🎯 Estado Actual del Proyecto
 
 ### ✅ Principios SOLID Implementados
 
-- **✅ S** - **Single Responsibility Principle**: Aplicado a nivel de clases Y paquetes
-- **✅ O** - **Open/Closed Principle**: Extensibilidad sin modificación (procesamiento + adquisición)
+- **✅ S** - **Single Responsibility Principle**: Aplicado a nivel de clases, paquetes, y Factories especializados
+- **✅ O** - **Open/Closed Principle**: Extensibilidad sin modificación mediante Factories y configuración JSON
 - **✅ L** - **Liskov Substitution Principle**: Intercambiabilidad polimórfica garantizada con SenialBase
-- **❌ I** - **Interface Segregation Principle**: VIOLACIÓN INTENCIONAL - BaseRepositorio con interfaz "gorda"
-- **✅ D** - **Dependency Inversion Principle**: Dependencia de abstracciones, inyección de dependencias
+- **✅ I** - **Interface Segregation Principle**: Interfaces segregadas (BaseAuditor, BaseTrazador en paquete supervisor)
+- **✅ D** - **Dependency Inversion Principle**: **Configuración externa JSON determina TODAS las dependencias del sistema**
 
-### 🏗️ Arquitectura Actual
+### 🏗️ Arquitectura Actual (v6.0.0 - DIP Completo)
 
 ```
 📦 Senial_SOLID_IS/
-├── 🏠 dominio_senial/          # Entidades del dominio
-├── 📡 adquisicion_senial/      # Adquisición (OCP aplicado)
-├── ⚙️  procesamiento_senial/    # Procesamiento (OCP aplicado)
+├── 🏠 dominio_senial/          # Entidades del dominio (SenialBase + LSP + FactorySenial)
+├── 📡 adquisicion_senial/      # Adquisición (OCP + FactoryAdquisidor)
+├── ⚙️  procesamiento_senial/    # Procesamiento (OCP + FactoryProcesador)
 ├── 📊 presentacion_senial/     # Visualización
-├── 🏭 configurador/            # Factory centralizado (SRP)
+├── 💾 persistidor_senial/      # Repository Pattern (DIP + ISP + FactoryContexto)
+├── 👁️  supervisor/              # Interfaces segregadas (ISP - BaseAuditor, BaseTrazador)
+├── 🏭 configurador/            # Factory centralizado (SRP + DIP + JSON)
+│   ├── config.json            # ⭐ Configuración externa (DIP)
+│   ├── cargador_config.py     # ⭐ Lector de JSON (SRP)
+│   └── configurador.py        # Orquestador de Factories (8 métodos)
 └── 🚀 lanzador/               # Orquestador (SRP puro)
 ```
+
+### 🎯 DIP Completo - Configuración Externa JSON
+
+```
+config.json (Configuración Externa)
+    ↓
+CargadorConfig (Lee y valida JSON)
+    ↓
+Configurador (Orquesta Factories)
+    ↓
+Factories Especializados
+    ↓ ↓ ↓ ↓
+    FactorySenial
+    FactoryAdquisidor
+    FactoryProcesador
+    FactoryContexto
+    ↓
+Objetos Concretos (tipos determinados por JSON)
+    ↓
+Lanzador (Orquesta componentes SIN conocer tipos)
+```
+
+**🎯 Cambiar comportamiento del sistema**: Editar `config.json`, NO código fuente
+
+---
 
 ## 📚 Evolución del Caso de Estudio
 
@@ -39,88 +69,91 @@ Este proyecto es un caso de estudio didáctico que demuestra la **evolución pro
 - **Procesamiento**: Amplificación con factor configurable
 - **Visualización**: Mostrar señal original y procesada
 
-### 🔄 Requerimiento 2: Extensión con Nuevos Tipos
+### 🔄 Requerimiento 2: Extensión con Nuevos Tipos (OCP)
 
 **Contexto**: Agregar filtrado por umbral sin romper funcionalidad existente
 - **Desafío OCP**: Extensión sin modificación de código existente
 - **Solución**: Abstracciones + polimorfismo + Factory Pattern
 
-### 🏭 Requerimiento 3: Factory Centralizado
+### 🏭 Requerimiento 3: Factory Centralizado (SRP)
 
 **Contexto**: Separar responsabilidades de creación y orquestación
 - **Desafío SRP**: Lanzador con múltiples responsabilidades
-- **Solución**: Configurador centralizado con decisiones "de fábrica"
+- **Solución v2.0**: Configurador centralizado con decisiones "de fábrica"
+- **Solución v3.0**: Configurador simplificado (8 métodos) + Factories especializados (4)
 
 ### 📚 Requerimiento 4: Manejo de Colecciones de Datos (LSP)
 
-**Contexto**: Los valores que corresponden a la señal son manejado como una lista, los desarrolladores están viendo que se puede agregar el manejo de la colección de valores de la señal también como una pila y una cola, además de una lista.
-- **Desafío LSP**: Intercambiabilidad real entre diferentes implementaciones de colecciones
-- **Solución v4.0.0**: Abstracción `SenialBase` con contrato común, implementaciones `SenialLista`, `SenialPila`, `SenialCola`
+**Contexto**: Agregar manejo de colecciones (lista, pila, cola) para valores de señal
+- **Desafío LSP**: Intercambiabilidad real entre diferentes implementaciones
+- **Solución v4.0.0**: Abstracción `SenialBase` con contrato común
 - **Resultado**: ✅ LSP aplicado completamente - 100% intercambiabilidad polimórfica
 
 ### 💾 Requerimiento 5: Persistencia y Trazabilidad (ISP)
 
-**Contexto**: Los datos adquiridos y procesados deben ser guardados. Se deben registrar los eventos de adquisición y guardado para tener una trazabilidad.
+**Contexto**: Persistencia de datos con auditoría y trazabilidad
 - **Desafío ISP**: Interfaces segregadas por responsabilidad específica
-- **Implementación v5.3.0**: ⚠️ VIOLACIÓN INTENCIONAL implementada para fines didácticos
-- **Problema Demostrado**: `BaseRepositorio` con 4 métodos abstractos (guardar, obtener, auditar, trazar)
-- **Consecuencia**: `RepositorioUsuario` forzado a implementar auditar/trazar aunque no los necesita
-- **Próximo Paso**: Resolver violación segregando en `IRepositorioBasico` + `IRepositorioAuditable`
+- **Implementación v5.3.0**: ⚠️ Violación ISP intencional (didáctica)
+- **Problema Demostrado**: `BaseRepositorio` con interfaz "gorda"
+- **Solución v6.0.0**: ✅ Interfaces segregadas (BaseAuditor, BaseTrazador)
 
+### 🔌 Requerimiento 6: Configuración Externa (DIP)
+
+**Contexto**: Extensibilidad total sin impacto en código fuente
+- **Desafío DIP**: Invertir dependencias para lograr configurabilidad completa
+- **Solución v3.0.0**: **Configuración externa JSON** con **Factories especializados**
+- **Resultado**: ✅ Cambiar comportamiento → Editar JSON, NO código
+
+**🎯 Componentes DIP v3.0.0:**
+- `config.json`: Configuración externa que determina tipos y parámetros
+- `CargadorConfig`: Lector de JSON con ruta dinámica (`__file__`)
+- `Configurador`: Simplificado de 21+ métodos a 8 métodos esenciales
+- `FactorySenial`: Crea señales según tipo JSON
+- `FactoryAdquisidor`: Crea adquisidores según tipo JSON
+- `FactoryProcesador`: Crea procesadores según tipo JSON
+- `FactoryContexto`: Crea contextos según tipo JSON
+
+---
 
 ## 🚀 Funcionalidades Implementadas
 
-### 📡 Adquisición de Señales (OCP Aplicado)
+### 📡 Adquisición de Señales (OCP + Factory)
 - **`AdquisidorConsola`**: Entrada interactiva desde teclado
 - **`AdquisidorArchivo`**: Lectura desde archivos de datos
-- **Extensible**: Fácil agregar sensores, APIs, bases de datos
+- **`AdquisidorSenoidal`**: Generación de señal senoidal sintética
+- **Factory**: `FactoryAdquisidor.crear(tipo, config, senial)`
+- **Extensible**: Agregar tipo → Modificar solo FactoryAdquisidor
 
-### ⚙️ Procesamiento de Señales (OCP Aplicado)
+### ⚙️ Procesamiento de Señales (OCP + Factory)
 - **`ProcesadorAmplificador`**: Amplificación con factor configurable
-- **`ProcesadorConUmbral`**: Filtrado por umbral
-- **Extensible**: Fácil agregar FFT, filtros digitales, wavelets
+- **`ProcesadorUmbral`**: Filtrado por umbral
+- **Factory**: `FactoryProcesador.crear(tipo, config, senial)`
+- **Extensible**: Agregar tipo → Modificar solo FactoryProcesador
 
-### 🏭 Configuración Centralizada (SRP Aplicado)
-- **Decisiones "de fábrica"**: Sin input del usuario
-- **Configuración programática**: Valores definidos en código
-- **Preparado para DIP**: Base para configuración externa
+### 🏠 Tipos de Señales (LSP + Factory)
+- **`SenialLista`**: Basada en lista Python
+- **`SenialPila`**: LIFO (Last In, First Out)
+- **`SenialCola`**: FIFO (First In, First Out)
+- **Factory**: `FactorySenial.crear(tipo, config)`
+- **Polimorfismo**: Todas cumplen protocolo `SenialBase`
 
-### 🚀 Orquestación Pura (SRP Aplicado)
+### 💾 Persistencia (DIP + ISP + Factory)
+- **`ContextoPickle`**: Persistencia binaria (.pickle)
+- **`ContextoArchivo`**: Persistencia texto plano (.dat)
+- **Factory**: `FactoryContexto.crear(tipo, config)`
+- **Repository Pattern**: `RepositorioSenial(contexto)`
+- **ISP**: Interfaces segregadas (BaseAuditor, BaseTrazador)
+
+### 🏭 Configuración (DIP Completo)
+- **`config.json`**: Configuración externa del sistema
+- **`CargadorConfig`**: Lee y valida JSON
+- **`Configurador`**: 8 métodos que delegan a Factories
+- **Sin hardcoding**: Todos los tipos determinados por JSON
+
+### 🚀 Orquestación Pura (SRP)
 - **Responsabilidad única**: Solo coordinar flujo
-- **Sin decisiones**: Delegadas al Configurador
-- **Sin interacción**: No maneja input del usuario
-
-
-## ⚠️ Demostración de Violación ISP
-
-### 🎯 Propósito Didáctico
-
-Esta versión implementa INTENCIONALMENTE una violación de ISP para demostrar:
-
-1. **Interfaz "Gorda"**: `BaseRepositorio` con 4 métodos abstractos obligatorios
-2. **Cliente Afectado**: `RepositorioUsuario` forzado a implementar métodos innecesarios
-3. **Consecuencias**: Implementaciones stub que lanzan `NotImplementedError`
-
-### 📝 Script de Demostración
-
-```bash
-# Ejecutar demostración completa de violación ISP
-python demo_violacion_isp.py
-```
-
-**Salida esperada**:
-- ✅ `RepositorioSenial`: Usa los 4 métodos → Sin problemas
-- ❌ `RepositorioUsuario`: Métodos auditar/trazar → Crash con `NotImplementedError`
-
-### 🎓 Lección Aprendida
-
-**Violación ISP**: Cuando una interfaz obliga a implementar métodos innecesarios:
-- Código frágil (crashes en runtime)
-- Implementaciones falsas (stubs)
-- Violación de contratos
-- Dificultad para mantener
-
-**Solución**: Segregar en interfaces específicas según necesidades reales.
+- **Sin decisiones**: Delegadas al Configurador + JSON
+- **DIP aplicado**: NO conoce tipos concretos
 
 ---
 
@@ -132,139 +165,452 @@ python demo_violacion_isp.py
 # Ejecutar el sistema completo
 python -m lanzador.lanzador
 
-# O directamente
+# O desde el directorio lanzador
 cd lanzador
 python lanzador.py
 ```
 
-### 📁 Configuración de Datos
+### 📁 Configuración del Sistema (config.json)
 
-El sistema está configurado para leer datos desde `senial.txt`:
-```
-# Ejemplo de archivo senial.txt
-1.5
-2.8
-3.2
-4.1
-5.7
+**Ubicación**: `configurador/config.json`
+
+```json
+{
+  "version": "1.0.0",
+  "descripcion": "Configuración externa del sistema - DIP aplicado",
+
+  "senial_adquisidor": {
+    "tipo": "lista",
+    "tamanio": 20
+  },
+
+  "senial_procesador": {
+    "tipo": "pila",
+    "tamanio": 20
+  },
+
+  "adquisidor": {
+    "tipo": "senoidal",
+    "num_muestras": 20
+  },
+
+  "procesador": {
+    "tipo": "amplificador",
+    "factor": 4.0
+  },
+
+  "contexto_adquisicion": {
+    "tipo": "archivo",
+    "recurso": "./tmp/datos/adquisicion"
+  },
+
+  "contexto_procesamiento": {
+    "tipo": "archivo",
+    "recurso": "./tmp/datos/procesamiento"
+  }
+}
 ```
 
-### ⚙️ Configuración del Sistema
+### 🎯 Cambiar Comportamiento sin Modificar Código
+
+#### Ejemplo 1: Cambiar de Amplificador a Umbral
+
+```json
+// Editar config.json
+"procesador": {
+  "tipo": "umbral",
+  "umbral": 100
+}
+```
+
+```bash
+# Ejecutar (sin tocar código)
+python -m lanzador.lanzador
+# → Sistema usa ProcesadorUmbral automáticamente ✅
+```
+
+#### Ejemplo 2: Cambiar Tipo de Señal
+
+```json
+// Editar config.json
+"senial_adquisidor": {
+  "tipo": "cola",
+  "tamanio": 50
+}
+```
+
+```bash
+# Ejecutar (sin tocar código)
+python -m lanzador.lanzador
+# → Sistema usa SenialCola automáticamente ✅
+```
+
+#### Ejemplo 3: Cambiar Estrategia de Persistencia
+
+```json
+// Editar config.json
+"contexto_adquisicion": {
+  "tipo": "pickle",
+  "recurso": "./tmp/datos/adquisicion"
+}
+```
+
+```bash
+# Ejecutar (sin tocar código)
+python -m lanzador.lanzador
+# → Sistema usa ContextoPickle automáticamente ✅
+```
+
+### ⚙️ Configuración Programática (API)
 
 ```python
-# El Configurador define la configuración "de fábrica"
 from configurador import Configurador
 
-# Configuración actual
-adquisidor = Configurador.crear_adquisidor()        # AdquisidorArchivo('senial.txt')
-procesador = Configurador.crear_procesador()        # ProcesadorAmplificador(4.0)
-visualizador = Configurador.crear_visualizador()    # Visualizador()
+# Inicializar con configuración externa
+Configurador.inicializar_configuracion()  # Lee config.json
+
+# Crear componentes (tipos determinados por JSON)
+adquisidor = Configurador.crear_adquisidor()
+procesador = Configurador.crear_procesador()
+repo_adquisicion = Configurador.crear_repositorio_adquisicion()
+
+# Usar componentes (polimorfismo puro)
+adquisidor.leer_senial()
+senial = adquisidor.obtener_senial_adquirida()
+procesador.procesar(senial)
+repo_adquisicion.guardar(senial)
 ```
+
+---
 
 ## 🏗️ Arquitectura y Patrones
 
 ### 📦 Paquetes Independientes (SRP a Nivel de Paquetes)
 
+| Paquete | Versión | Responsabilidad |
+|---------|---------|----------------|
+| `dominio-senial` | 5.0.0 | Entidades base + FactorySenial |
+| `adquisicion-senial` | 3.0.0 | Adquisidores + FactoryAdquisidor |
+| `procesamiento-senial` | 3.0.0 | Procesadores + FactoryProcesador |
+| `presentacion-senial` | 2.0.0 | Visualización |
+| `persistidor-senial` | 7.0.0 | Repository + FactoryContexto |
+| `supervisor` | 1.0.0 | Interfaces segregadas (ISP) |
+| `configurador` | **3.0.0** | DIP + JSON + Factories |
+| `lanzador` | 6.0.0 | Orquestación pura |
+
+### 🏭 Factories Especializados (v3.0.0)
+
 ```python
-# Cada paquete tiene responsabilidad única y puede instalarse independientemente
-pip install dominio-senial           # Solo entidades
-pip install adquisicion-senial       # Solo adquisición
-pip install procesamiento-senial     # Solo procesamiento
-pip install presentacion-senial      # Solo presentación
-pip install configurador            # Solo factory centralizado
-pip install lanzador               # Solo orquestación
+# Cada Factory tiene responsabilidad única
+from dominio_senial import FactorySenial
+from adquisicion_senial import FactoryAdquisidor
+from procesamiento_senial import FactoryProcesador
+from persistidor_senial import FactoryContexto
+
+# Uso (internamente en Configurador)
+senial = FactorySenial.crear('lista', {'tamanio': 20})
+adquisidor = FactoryAdquisidor.crear('archivo', {'ruta_archivo': 'senial.txt'}, senial)
+procesador = FactoryProcesador.crear('amplificador', {'factor': 4.0}, senial)
+contexto = FactoryContexto.crear('pickle', {'recurso': './datos'})
 ```
 
 ### 🔄 Extensibilidad (OCP Demostrado)
 
 ```python
-# Agregar nuevo procesador SIN modificar código existente
-class ProcesadorSuavizado(BaseProcesador):
+# Agregar nuevo tipo de procesador
+# 1. Crear clase (nueva)
+class ProcesadorFiltro(BaseProcesador):
     def procesar(self, senial):
-        # Implementación específica
+        # Implementación
         pass
 
-# Solo agregar al factory
-def crear_procesador_suavizado():
-    return ProcesadorSuavizado(ventana=3)
+# 2. Modificar SOLO FactoryProcesador
+elif tipo == 'filtro':
+    from procesamiento_senial.procesador_filtro import ProcesadorFiltro
+    frecuencia = config.get('frecuencia_corte', 50)
+    return ProcesadorFiltro(frecuencia, senial)
+
+# 3. Agregar en config.json
+{
+  "procesador": {
+    "tipo": "filtro",
+    "frecuencia_corte": 50
+  }
+}
+
+# ✅ Configurador NO se modifica
+# ✅ Lanzador NO se modifica
+# ✅ Otros Factories NO se modifican
 ```
 
-### 🔀 Intercambiabilidad (LSP Aplicado) ✅
+### 🔀 Intercambiabilidad (LSP Aplicado)
 
 ```python
-# ✅ LSP v4.0.0: Cualquier señal funciona polimórficamente
-from dominio_senial import SenialBase, SenialLista, SenialPila, SenialCola
+# Cualquier señal funciona polimórficamente
+from dominio_senial import SenialBase
 
 def procesar_cualquier_senial(senial: SenialBase):
-    """Función genérica que funciona con CUALQUIER tipo de señal"""
+    """Función genérica que funciona con CUALQUIER tipo"""
     senial.poner_valor(42.0)
     valor = senial.sacar_valor()
     return valor
 
 # ✅ Funciona con las 3 implementaciones
-for tipo in [SenialLista, SenialPila, SenialCola]:
-    resultado = procesar_cualquier_senial(tipo())
-    print(f'{tipo.__name__}: {resultado}')
+seniales = [
+    FactorySenial.crear('lista', {'tamanio': 10}),
+    FactorySenial.crear('pila', {'tamanio': 10}),
+    FactorySenial.crear('cola', {'tamanio': 10}),
+]
+
+for senial in seniales:
+    resultado = procesar_cualquier_senial(senial)
+    print(f'{type(senial).__name__}: {resultado}')
 ```
+
+---
 
 ## 📚 Documentación Técnica
 
 ### 📋 Documentos Disponibles
 
-- **`docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md`**: Guía completa del patrón OCP aplicado
+#### Principios SOLID
+
 - **`docs/IMPLEMETACION DE SRP EN PAQUETES.md`**: Evolución de SRP a nivel de paquetes
-- **`docs/VIOLACIONES DE LSP EN TIPOS DE SEÑAL.md`**: Análisis de violaciones LSP (versión anterior)
-- **`docs/SOLUCION LSP CON ABSTRACCIONES.md`**: Solución completa LSP v4.0.0 ⭐ NUEVO
+- **`docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md`**: Guía completa del patrón OCP
+- **`docs/VIOLACIONES DE LSP EN TIPOS DE SEÑAL.md`**: Análisis de violaciones LSP (histórico)
+- **`docs/SOLUCION LSP CON ABSTRACCIONES.md`**: Solución completa LSP v4.0.0
+- **`docs/CORRECCION ISP CON INTERFACES SEGREGADAS.md`**: ISP aplicado v6.0.0
+
+#### DIP y Configuración Externa (v3.0.0) ⭐ NUEVO
+
+- **`docs/APLICACION DIP CONFIGURACION EXTERNA.md`**: DIP completo con JSON
+- **`docs/FACTORIES ESPECIALIZADOS - DELEGACION Y SRP.md`**: Patrón Factory especializado
+- **`docs/CARGADOR CONFIG - GESTION DE CONFIGURACION EXTERNA.md`**: CargadorConfig detallado
+
+#### Patrones de Diseño
+
+- **`docs/PATRON REPOSITORY EN PERSISTENCIA.md`**: Repository Pattern aplicado
+- **`docs/INCORPORACION DEL CONFIGURADOR CON FACTORY PATTERN.md`**: Factory centralizado
+- **`docs/ANTI-PATRONES VS SOLID - ANÁLISIS COMPARATIVO.md`**: Comparativa antipatrones
+
+#### Paquetes
+
 - **Cada paquete**: README.md específico con arquitectura y uso
+
+### 🎓 Casos de Uso Didácticos
+
+#### Demostración ISP (Violación → Corrección)
+
+```bash
+# Ver violación ISP (v5.3.0 - histórico)
+python demo_violacion_isp.py
+
+# Ver corrección ISP (v6.0.0 - actual)
+python test_correccion_isp.py
+```
+
+#### Demostración DIP (Configuración Externa)
+
+```bash
+# Ver configuración desde JSON
+python test_configuracion_externa.py
+
+# Cambiar config.json y ejecutar
+vim configurador/config.json
+python -m lanzador.lanzador
+```
 
 ### 🧪 Testing
 
 ```bash
-# Tests por paquete
-pytest dominio_senial/tests/
-pytest procesamiento_senial/tests/
-# ... otros paquetes
+# Tests de Factories
+python test_factory_senial.py
+python test_factory_adquisidor.py
+python test_factory_procesador.py
+python test_factory_contexto.py
 
-# Tests de integración
-pytest lanzador/tests/
+# Tests de configuración
+python test_configuracion_externa.py
+
+# Test completo del sistema
+./test_app_completo.sh
 ```
+
+---
 
 ## 🎯 Valor Didáctico
 
 ### ✅ Lo que se Demuestra
 
-1. **SRP Progresivo**: De clases → paquetes → responsabilidades cristalinas
-2. **OCP Práctico**: Extensibilidad real sin tocar código existente
-3. **LSP Aplicado**: Abstracción `SenialBase` con intercambiabilidad 100% ⭐ NUEVO
-4. **DIP Implementado**: Dependencia de abstracciones, inyección de dependencias ⭐ NUEVO
-5. **Factory Centralizado**: Separación total de creación y uso
-6. **Polimorfismo Real**: Código cliente funciona con cualquier implementación
+1. **SRP en 3 Niveles**:
+   - Clases: Responsabilidad única por clase
+   - Paquetes: Responsabilidad única por paquete
+   - Factories: Responsabilidad única por dominio
 
-### 🔄 Próximo Paso
+2. **OCP Práctico**:
+   - Extensibilidad editando JSON (config.json)
+   - Agregar tipos → Modificar solo Factory correspondiente
+   - Sin modificar Configurador ni Lanzador
 
-- **Corrección ISP**: Segregar `BaseRepositorio` en:
-  - `IRepositorioBasico` (guardar, obtener) - Para TODOS
-  - `IRepositorioAuditable` (auditar, trazar) - Solo para señales
+3. **LSP Aplicado**:
+   - Abstracción `SenialBase` con contrato común
+   - Intercambiabilidad 100% entre Lista/Pila/Cola
+   - Polimorfismo verificado con tests
+
+4. **ISP Corregido**:
+   - Interfaces segregadas (BaseAuditor, BaseTrazador)
+   - RepositorioSenial: Implementa solo lo necesario
+   - RepositorioUsuario: Sin métodos innecesarios
+
+5. **DIP Completo** ⭐:
+   - **Configuración externa JSON** determina dependencias
+   - CargadorConfig con ruta dinámica (`__file__`)
+   - Factories especializados (FactorySenial, FactoryAdquisidor, etc.)
+   - Configurador simplificado (21+ → 8 métodos)
+   - Cambiar comportamiento → Editar JSON, NO código
+
+### 📊 Métricas de Mejora (v2.2 → v3.0)
+
+```
+CONFIGURADOR:
+- Métodos: 21+ → 8 (62% reducción)
+- Responsabilidades: Múltiples → 1 (orquestar Factories)
+- Dependencias directas: Todas las clases → 4 Factories
+- Acoplamiento: Alto → Bajo
+
+SISTEMA:
+- Configuración: Hardcoded → JSON externo
+- Cambiar comportamiento: Modificar código → Editar JSON
+- Extensibilidad: Media → Alta
+- DIP: Parcial → Completo
+```
+
+### 🔄 Evolución Arquitectónica Completa
+
+```
+v1.0 → Implementación básica
+v2.0 → Factory centralizado (Configurador)
+v2.2 → Repository Pattern
+v3.0 → DIP COMPLETO (JSON + CargadorConfig + Factories) ⭐
+v4.0 → LSP aplicado (SenialBase)
+v5.3 → Violación ISP (didáctica)
+v6.0 → ISP corregido (interfaces segregadas) - ESTADO ACTUAL
+```
+
+---
 
 ## 🛠️ Instalación y Configuración
+
+### Requisitos
+
+- Python 3.8+
+- pip
+
+### Instalación
 
 ```bash
 # Clonar repositorio
 git clone <repository-url>
 cd Senial_SOLID_IS
 
-# Instalar dependencias
-pip install -r requirements.txt
+# Crear entorno virtual (recomendado)
+python3 -m venv venv
+source venv/bin/activate  # Linux/Mac
+# venv\Scripts\activate  # Windows
 
-# Crear archivo de datos (ejemplo)
+# Instalar paquetes (desarrollo)
+pip install -e dominio_senial/
+pip install -e adquisicion_senial/
+pip install -e procesamiento_senial/
+pip install -e presentacion_senial/
+pip install -e persistidor_senial/
+pip install -e supervisor/
+pip install -e configurador/
+pip install -e lanzador/
+
+# O instalar desde requirements.txt (si existe)
+pip install -r requirements.txt
+```
+
+### Configuración Inicial
+
+```bash
+# 1. Crear directorios de datos (si no existen)
+mkdir -p tmp/datos/adquisicion
+mkdir -p tmp/datos/procesamiento
+
+# 2. Verificar config.json
+cat configurador/config.json
+
+# 3. Crear archivo de datos de ejemplo (si usas tipo "archivo")
 echo -e "1.5\n2.8\n3.2\n4.1\n5.7" > senial.txt
 
-# Ejecutar
+# 4. Ejecutar el sistema
+python -m lanzador.lanzador
+```
+
+### Personalizar Configuración
+
+```bash
+# Editar configuración externa
+vim configurador/config.json
+
+# Cambiar tipo de adquisidor, procesador, señal, contexto
+# Ver ejemplos en docs/APLICACION DIP CONFIGURACION EXTERNA.md
+
+# Ejecutar con nueva configuración
 python -m lanzador.lanzador
 ```
 
 ---
 
+## ✅ Corrección ISP Aplicada (v6.0.0)
+
+### 🎯 Propósito Didáctico
+
+Esta versión demuestra la **corrección del principio ISP** mediante interfaces segregadas:
+
+1. **Interfaces Segregadas**:
+   - `BaseRepositorio`: Solo métodos básicos (guardar, obtener)
+   - `BaseAuditor`: Solo métodos de auditoría
+   - `BaseTrazador`: Solo métodos de trazabilidad
+
+2. **Paquete Supervisor**: Interfaces especializadas independientes
+
+3. **Herencia Múltiple Selectiva**:
+   - `RepositorioSenial`: BaseRepositorio + BaseAuditor + BaseTrazador
+   - `RepositorioUsuario`: Solo BaseRepositorio
+
+4. **Auditoría Automática**: Interna al repositorio (no llamadas explícitas)
+
+### 📝 Verificación
+
+```bash
+# Ejecutar verificación de corrección ISP
+python test_correccion_isp.py
+```
+
+**Salida esperada**:
+- ✅ `RepositorioSenial`: Con auditoría y trazabilidad
+- ✅ `RepositorioUsuario`: Solo persistencia
+- ✅ Verificación: `hasattr(repo_usuario, 'auditar')` → `False`
+
+---
+
+## 📖 Conclusión
+
+Este proyecto demuestra la **aplicación completa de los 5 principios SOLID** en un sistema real:
+
+- **S**: Responsabilidad única en clases, paquetes, y Factories
+- **O**: Extensibilidad mediante Factories y configuración JSON
+- **L**: Polimorfismo garantizado con SenialBase
+- **I**: Interfaces segregadas (BaseAuditor, BaseTrazador)
+- **D**: **Configuración externa JSON determina TODAS las dependencias**
+
+**El valor principal de este caso de estudio es mostrar que SOLID no es solo teoría - es una filosofía de diseño práctica que resulta en sistemas flexibles, extensibles, y mantenibles.**
+
+---
+
 **📖 Proyecto Didáctico - Victor Valotto**
-**🎯 Objetivo**: Demostración práctica de principios SOLID aplicados progressivamente
-**🔄 Estado v4.0.0**: SRP + OCP + LSP + DIP implementados - Preparado para ISP
+**🎯 Objetivo**: Demostración práctica de principios SOLID aplicados progresivamente
+**🔄 Estado v6.0.0**: ✅ TODOS los principios SOLID correctamente aplicados con DIP completo

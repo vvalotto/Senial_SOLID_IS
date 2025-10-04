@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name="procesamiento-senial",
-    version="2.1.0",
-    description="Procesamiento polimórfico de señales con soporte para SenialBase",
+    version="3.0.0",
+    description="Factory Pattern + Configuración Externa para procesamiento de señales con DIP",
     author="Victor Valotto",
     author_email="vvalotto@gmail.com",
     url="https://github.com/vvalotto/Senial_SOLID_IS",

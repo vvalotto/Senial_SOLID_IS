@@ -1,206 +1,272 @@
 """
-Configurador - Factory Centralizado para la Aplicación
+Configurador - Factory Centralizado con Configuración Externa (DIP Aplicado)
 
-Este módulo implementa el patrón Factory Centralizado que aplica SRP
-para separar completamente las responsabilidades de CREACIÓN y ORQUESTACIÓN.
+Este módulo implementa el patrón Factory Centralizado con configuración JSON externa,
+aplicando completamente el principio DIP (Dependency Inversion Principle).
 
 📚 DOCUMENTACIÓN TÉCNICA:
 - SRP aplicado: docs/IMPLEMETACION DE SRP EN PAQUETES.md
-- Preparación DIP: Configuración programática como base para inyección futura
+- DIP con configuración externa: docs/APLICACION_DIP_CONFIGURACION_EXTERNA.md
 
 🎯 PRINCIPIOS SOLID APLICADOS:
-- SRP: Una responsabilidad única - crear y configurar objetos
-- Preparación OCP: Extensible para nuevos tipos sin modificar cliente
-- Base para DIP: Centralización que facilita inversión de dependencias
+- SRP: Una responsabilidad única - crear y configurar objetos desde JSON
+- OCP: Extensible para nuevos tipos sin modificar código cliente
+- DIP: Configuración externa (JSON) determina las dependencias del sistema
 
 🏗️ PATRÓN IMPLEMENTADO:
-Factory Centralizado con decisiones "de fábrica" - sin input del usuario,
-permitiendo que el Lanzador se enfoque SOLO en orquestación.
+Factory Centralizado con Configuración Externa - Las dependencias se leen desde
+config.json, permitiendo cambiar el comportamiento del sistema sin modificar código.
 
-Versión: 2.2.0 - SRP Puro + Persistencia integrada (preparado para ISP)
+🔄 MIGRACIÓN XML → JSON:
+Versión 2.0.0: Configuración desde XML (minidom.parse)
+Versión 3.0.0: Configuración desde JSON con Factories especializados (ACTUAL)
+
+Versión: 3.0.0 - DIP Completo con Configuración Externa JSON
 Autor: Victor Valotto
 """
-from adquisicion_senial import AdquisidorConsola, AdquisidorArchivo
-from procesamiento_senial import ProcesadorAmplificador, ProcesadorConUmbral
+# Imports de abstracciones
 from presentacion_senial import Visualizador
-from dominio_senial import SenialLista, SenialPila, SenialCola
-from persistidor_senial import (
-    # API Legacy (deprecada - mantener compatibilidad)
-    PersistidorPickle, PersistidorArchivo,
-    # API Nueva - Patrón Repository
-    BaseContexto, ContextoPickle, ContextoArchivo,
-    BaseRepositorio, RepositorioSenial, RepositorioUsuario
-)
+
+# Imports de Factories especializados (DIP)
+from dominio_senial import FactorySenial
+from adquisicion_senial import FactoryAdquisidor
+from procesamiento_senial import FactoryProcesador
+from persistidor_senial import FactoryContexto
+
+# Imports para Patrón Repository
+from persistidor_senial import RepositorioSenial
+
+# Cargador de configuración externa
+from configurador.cargador_config import CargadorConfig
 
 
 class Configurador:
     """
-    Factory Centralizado que aplica SRP PURO para la creación de objetos.
+    Factory Centralizado con Configuración Externa (DIP Aplicado).
 
     📖 RESPONSABILIDAD ÚNICA:
-    Crear y configurar todas las instancias de clases que participan en la
-    solución de procesamiento de señales, separando completamente esta
-    responsabilidad del código que USA los objetos.
+    Crear y configurar todas las instancias desde configuración externa (JSON),
+    delegando la creación de objetos a Factories especializados.
 
     📚 REFERENCIA TEÓRICA:
     - docs/IMPLEMETACION DE SRP EN PAQUETES.md: Evolución de SRP a nivel paquetes
-    - docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md: Uso de abstracciones
+    - docs/APLICACION_DIP_CONFIGURACION_EXTERNA.md: DIP con JSON
 
-    🎯 DECISIONES "DE FÁBRICA":
-    Configuración programática definida en código sin input del usuario,
-    permitiendo que el sistema funcione con configuraciones predeterminadas
-    mientras se prepara para DIP (Dependency Inversion Principle).
+    🎯 DIP APLICADO:
+    Las dependencias del sistema se determinan desde config.json:
+    - Tipos de señales: JSON decide lista/pila/cola
+    - Tipos de adquisidores: JSON decide consola/archivo/senoidal
+    - Tipos de procesadores: JSON decide amplificador/umbral
+    - Tipos de contextos: JSON decide pickle/archivo
 
-    🔄 INYECCIÓN DE SEÑALES:
-    Los componentes pueden reciben tipos de señal independientes:
-    - Adquisidores: crear_senial_adquisidor()
-    - Procesadores: crear_senial_procesador()
-    Permitiendo experimentos LSP sofisticados con tipos mixtos.
+    🏭 FACTORIES ESPECIALIZADOS:
+    - FactorySenial: Crea señales según tipo y configuración
+    - FactoryAdquisidor: Crea adquisidores con señal inyectada
+    - FactoryProcesador: Crea procesadores con señal inyectada
+    - FactoryContexto: Crea contextos de persistencia
 
-    💾 PERSISTENCIA INTEGRADA (v2.2.0):
-    Factory methods para persistidores con violaciones ISP intencionales:
-    - crear_persistidor() → PersistidorPickle (genérico)
-    - crear_persistidor_adquisidor() → Persistidor para señales adquiridas
-    - crear_persistidor_procesador() → Persistidor para señales procesadas
-    - crear_persistidor_pickle() → Serialización binaria
-    - crear_persistidor_archivo() → Archivos de texto plano
+    🔄 SIMPLIFICACIÓN V3.0:
+    Solo métodos que leen del JSON. Métodos específicos eliminados (redundantes).
+    Toda la configuración viene del archivo config.json.
 
-    🔄 INYECCIÓN INDEPENDIENTE DE PERSISTIDORES:
-    Permite configurar estrategias de persistencia diferentes por fase:
-    - Adquisidor puede guardar en formato binario (rápido)
-    - Procesador puede guardar en texto plano (analizable)
-
-    🔄 EVOLUCIÓN PLANIFICADA:
-    V2.0: Configuración programática con inyección de señales
-    V2.2: Persistencia integrada - Preparado para demostración ISP (ACTUAL)
-    V3.0: Aplicación de ISP - Interfaces segregadas
-    V4.0: Configuración externa (archivos JSON/YAML) - DIP aplicado
-    V5.0: Inyección de dependencias completa - IoC Container
+    🔄 EVOLUCIÓN COMPLETADA:
+    ✅ V2.0: Configuración programática con inyección de señales
+    ✅ V2.2: Persistencia integrada - Patrón Repository
+    ✅ V3.0: Configuración externa (JSON) + Factories + Simplificación (ACTUAL)
+    📋 V4.0: Validación de esquemas JSON
+    📋 V5.0: Inyección de dependencias completa - IoC Container
     """
 
-    @staticmethod
-    def crear_adquisidor_consola():
-        """
-        Crea un adquisidor desde consola con configuración específica.
+    # Instancia singleton del cargador de configuración
+    _cargador = None
 
-        📖 CONFIGURACIÓN INTEGRADA:
-        - Número de muestras: 5
-        - Tipo de señal: Configurado desde factory central
-
-        :return: Instancia configurada de AdquisidorConsola con señal apropiada
-        """
-        numero_muestras = 5
-        adquisidor = AdquisidorConsola(numero_muestras)
-        # 🔄 INYECCIÓN DE DEPENDENCIA: Tipo de señal específico para adquisidor
-        adquisidor._senial = Configurador.crear_senial_adquisidor()
-        return adquisidor
+    # =========================================================================
+    # INICIALIZACIÓN
+    # =========================================================================
 
     @staticmethod
-    def crear_adquisidor_archivo(ruta_archivo='senial.txt'):
+    def inicializar_configuracion(ruta_config: str = None):
         """
-        Crea un adquisidor desde archivo con configuración específica.
+        🚀 Inicializa el sistema de configuración externa.
 
-        📖 CONFIGURACIÓN INTEGRADA:
-        - Archivo: 'senial.txt' por defecto
-        - Tipo de señal: Configurado desde factory central
+        📖 DIP APLICADO:
+        Carga la configuración JSON que determinará todas las dependencias
+        del sistema. Este método debe llamarse ANTES de crear componentes.
 
-        :param ruta_archivo: Ruta del archivo a leer (por defecto 'senial.txt')
-        :return: Instancia configurada de AdquisidorArchivo con señal apropiada
+        🔄 RUTA DINÁMICA:
+        Si no se proporciona ruta_config, busca config.json en el directorio
+        del módulo configurador (usando __file__), independientemente de
+        desde dónde se ejecute el lanzador.
+
+        🔄 EQUIVALENTE A: minidom.parse("./datos/configuracion.xml")
+
+        🧪 USO EN LANZADOR:
+        ```python
+        # Al inicio del programa (sin especificar ruta - usa default)
+        Configurador.inicializar_configuracion()
+
+        # O con ruta explícita
+        Configurador.inicializar_configuracion('/ruta/custom/config.json')
+
+        # Luego crear componentes (ya configurados desde JSON)
+        adquisidor = Configurador.crear_adquisidor()
+        procesador = Configurador.crear_procesador()
+        ```
+
+        :param ruta_config: Ruta al archivo config.json (None = usa directorio del módulo)
+        :raises FileNotFoundError: Si el archivo no existe
+        :raises json.JSONDecodeError: Si el JSON es inválido
         """
-        adquisidor = AdquisidorArchivo(ruta_archivo)
-        # 🔄 INYECCIÓN DE DEPENDENCIA: Tipo de señal específico para adquisidor
-        adquisidor._senial = Configurador.crear_senial_adquisidor()
-        return adquisidor
+        Configurador._cargador = CargadorConfig(ruta_config)
+        Configurador._cargador.cargar()
+        print(f"✅ Configuración cargada desde {Configurador._cargador.ruta_config}")
+
+    # =========================================================================
+    # CREACIÓN DE SEÑALES (desde JSON)
+    # =========================================================================
+
+    @staticmethod
+    def crear_senial_adquisidor():
+        """
+        🏭 FACTORY METHOD - Señal para componentes de adquisición.
+
+        🔄 REFACTORIZADO V3.0: Lee configuración desde JSON
+
+        📖 DIP APLICADO:
+        La configuración externa (JSON) determina el tipo de señal.
+        Si no hay configuración, usa fallback (lista, tamaño 10).
+
+        🔄 EQUIVALENTE A: definir_senial_adquirir() (versión XML v2.0.0)
+
+        XML: <senial_adq>cola<tamanio>20</tamanio></senial_adq>
+        JSON: "senial_adquisidor": {"tipo": "cola", "tamanio": 20}
+
+        :return: Señal configurada desde JSON para adquisidores
+        """
+        if Configurador._cargador is None:
+            # Fallback: sin configuración externa
+            config = {'tamanio': 10}
+            return FactorySenial.crear('lista', config)
+
+        # Leer configuración desde JSON
+        config = Configurador._cargador.obtener_config_senial_adquisidor()
+        tipo = config.get('tipo', 'lista')
+        return FactorySenial.crear(tipo, config)
+
+    @staticmethod
+    def crear_senial_procesador():
+        """
+        🏭 FACTORY METHOD - Señal para componentes de procesamiento.
+
+        🔄 REFACTORIZADO V3.0: Lee configuración desde JSON
+
+        📖 DIP APLICADO:
+        La configuración externa (JSON) determina el tipo de señal.
+        Si no hay configuración, usa fallback (lista, tamaño 10).
+
+        🔄 EQUIVALENTE A: definir_senial_procesar() (versión XML v2.0.0)
+
+        XML: <senial_pro>pila<tamanio>20</tamanio></senial_pro>
+        JSON: "senial_procesador": {"tipo": "pila", "tamanio": 20}
+
+        :return: Señal configurada desde JSON para procesadores
+        """
+        if Configurador._cargador is None:
+            # Fallback: sin configuración externa
+            config = {'tamanio': 10}
+            return FactorySenial.crear('lista', config)
+
+        # Leer configuración desde JSON
+        config = Configurador._cargador.obtener_config_senial_procesador()
+        tipo = config.get('tipo', 'lista')
+        return FactorySenial.crear(tipo, config)
+
+    # =========================================================================
+    # CREACIÓN DE ADQUISIDORES (desde JSON)
+    # =========================================================================
 
     @staticmethod
     def crear_adquisidor():
         """
-        🏭 FACTORY METHOD PRINCIPAL - Adquisidor configurado de fábrica.
+        🏭 FACTORY METHOD PRINCIPAL - Adquisidor configurado desde JSON.
 
-        📖 SRP APLICADO:
-        El Configurador DECIDE qué adquisidor usar sin consultar al usuario,
-        separando la responsabilidad de configuración de la orquestación.
+        🔄 REFACTORIZADO V3.0: Lee configuración desde JSON
 
-        📚 REFERENCIA OCP:
-        docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md - Demuestra cómo
-        cambiar implementaciones sin modificar código cliente (Lanzador).
+        📖 DIP APLICADO:
+        La configuración externa (JSON) determina:
+        - Tipo de adquisidor (consola/archivo/senoidal)
+        - Parámetros específicos (ruta_archivo, num_muestras, etc.)
+        - Tipo de señal a usar
 
-        🎯 DECISIÓN "DE FÁBRICA":
-        AdquisidorArchivo('senial.txt') - Lectura desde archivo sin interacción.
-        Esta decisión puede cambiar aquí sin afectar el Lanzador (OCP).
+        🔄 EQUIVALENTE A: definir_adquisidor() (versión XML v2.0.0)
 
-        🔄 INYECCIÓN AUTOMÁTICA:
-        El adquisidor recibe automáticamente el tipo de señal configurado
-        en crear_senial_adquisidor(), permitiendo experimentos LSP controlados.
+        XML: <adquisidor>archivo
+             <param id="dir_entrada_datos">./adquisidor/datos.txt</param>
+             </adquisidor>
+        JSON: "adquisidor": {"tipo": "archivo",
+              "ruta_archivo": "./adquisidor/datos.txt"}
 
-        :return: BaseAdquisidor - Abstracción que garantiza polimorfismo
-        :rtype: BaseAdquisidor
+        :return: BaseAdquisidor configurado desde JSON
         """
-        return Configurador.crear_adquisidor_archivo()
+        if Configurador._cargador is None:
+            # Fallback: sin configuración externa
+            config = {'ruta_archivo': 'senial.txt'}
+            senial = Configurador.crear_senial_adquisidor()
+            return FactoryAdquisidor.crear('archivo', config, senial)
 
-    @staticmethod
-    def crear_procesador_amplificador():
-        """
-        Crea un procesador amplificador con configuración específica.
+        # Leer configuración desde JSON
+        config = Configurador._cargador.obtener_config_adquisidor()
+        tipo = config.get('tipo', 'archivo')
 
-        📖 CONFIGURACIÓN INTEGRADA:
-        - Factor de amplificación: 4.0
-        - Tipo de señal: Configurado desde factory central
+        # Crear señal configurada
+        senial = Configurador.crear_senial_adquisidor()
 
-        :return: Instancia configurada de ProcesadorAmplificador con señal apropiada
-        """
-        factor_amplificacion = 4.0
-        procesador = ProcesadorAmplificador(factor_amplificacion)
-        # 🔄 INYECCIÓN DE DEPENDENCIA: Tipo de señal específico para procesador
-        procesador._senial = Configurador.crear_senial_procesador()
-        return procesador
+        # Usar factory con configuración externa
+        return FactoryAdquisidor.crear(tipo, config, senial)
 
-    @staticmethod
-    def crear_procesador_umbral():
-        """
-        Crea un procesador con umbral con configuración específica.
-
-        📖 CONFIGURACIÓN INTEGRADA:
-        - Umbral: 8.0
-        - Tipo de señal: Configurado desde factory central
-
-        :return: Instancia configurada de ProcesadorConUmbral con señal apropiada
-        """
-        umbral = 8.0
-        procesador = ProcesadorConUmbral(umbral)
-        # 🔄 INYECCIÓN DE DEPENDENCIA: Tipo de señal específico para procesador
-        procesador._senial = Configurador.crear_senial_procesador()
-        return procesador
+    # =========================================================================
+    # CREACIÓN DE PROCESADORES (desde JSON)
+    # =========================================================================
 
     @staticmethod
     def crear_procesador():
         """
-        🏭 FACTORY METHOD PRINCIPAL - Procesador configurado de fábrica.
+        🏭 FACTORY METHOD PRINCIPAL - Procesador configurado desde JSON.
 
-        📖 SRP + OCP DEMOSTRADO:
-        El Configurador decide qué procesador usar (SRP) y puede cambiar
-        la implementación sin afectar el Lanzador (OCP).
+        🔄 REFACTORIZADO V3.0: Lee configuración desde JSON
 
-        📚 REFERENCIA ARQUITECTÓNICA:
-        docs/IMPLEMENTACION DE OCP CON ABSTRACCIONES.md - Sección "Factory Pattern"
-        Explica cómo este metodo centraliza decisiones manteniendo extensibilidad.
+        📖 DIP APLICADO:
+        La configuración externa (JSON) determina:
+        - Tipo de procesador (amplificador/umbral)
+        - Parámetros específicos (factor, umbral)
+        - Tipo de señal a usar
 
-        🎯 DECISIÓN "DE FÁBRICA":
-        ProcesadorAmplificador(4.0) - Amplificación por factor 4 sin input usuario.
-        Cambiar a ProcesadorConUmbral aquí NO requiere modificar Lanzador.
+        🔄 EQUIVALENTE A: definir_procesador() (versión XML v2.0.0)
 
-        🔄 INYECCIÓN AUTOMÁTICA:
-        El procesador recibe automáticamente el tipo de señal configurado
-        en crear_senial_procesador(), permitiendo experimentos LSP independientes.
+        XML: <procesador>umbral<param id="umbral">100</param></procesador>
+        JSON: "procesador": {"tipo": "umbral", "umbral": 100}
 
-        🔄 EJEMPLO EXTENSIÓN SIN MODIFICACIÓN:
-        # return Configurador.crear_procesador_umbral()  # ← Cambio OCP
-        # return Configurador.crear_procesador_suavizado()  # ← Futuro
-
-        :return: BaseProcesador - Abstracción que garantiza polimorfismo
-        :rtype: BaseProcesador
+        :return: BaseProcesador configurado desde JSON
         """
-        return Configurador.crear_procesador_amplificador()
+        if Configurador._cargador is None:
+            # Fallback: sin configuración externa
+            config = {'factor': 4.0}
+            senial = Configurador.crear_senial_procesador()
+            return FactoryProcesador.crear('amplificador', config, senial)
+
+        # Leer configuración desde JSON
+        config = Configurador._cargador.obtener_config_procesador()
+        tipo = config.get('tipo', 'amplificador')
+
+        # Crear señal configurada
+        senial = Configurador.crear_senial_procesador()
+
+        # Usar factory con configuración externa
+        return FactoryProcesador.crear(tipo, config, senial)
+
+    # =========================================================================
+    # CREACIÓN DE VISUALIZADORES
+    # =========================================================================
 
     @staticmethod
     def crear_visualizador():
@@ -211,386 +277,82 @@ class Configurador:
         """
         return Visualizador()
 
-    @staticmethod
-    def crear_senial_lista():
-        """
-        🏭 FACTORY METHOD - Crea señal con comportamiento de lista.
-
-        📖 CONFIGURACIÓN "DE FÁBRICA":
-        Señal básica con acceso secuencial por índice y tamaño por defecto.
-        Comportamiento: Lista dinámica estándar.
-
-        ✅ LSP APLICADO: SenialLista cumple contrato de SenialBase completamente.
-
-        :return: Instancia configurada de SenialLista (comportamiento lista)
-        :rtype: SenialLista
-        """
-        return SenialLista()
-
-    @staticmethod
-    def crear_senial_pila():
-        """
-        🏭 FACTORY METHOD - Crea señal con comportamiento de pila (LIFO).
-
-        📖 CONFIGURACIÓN "DE FÁBRICA":
-        Señal que actúa como pila - Last In, First Out.
-        Comportamiento: Extracción desde el final con sacar_valor().
-
-        ✅ LSP APLICADO: SenialPila cumple contrato de SenialBase completamente.
-        Intercambiable polimórficamente con cualquier otra señal.
-
-        :return: Instancia configurada de SenialPila (comportamiento LIFO)
-        :rtype: SenialPila
-        """
-        return SenialPila()
-
-    @staticmethod
-    def crear_senial_cola():
-        """
-        🏭 FACTORY METHOD - Crea señal con comportamiento de cola circular (FIFO).
-
-        📖 CONFIGURACIÓN "DE FÁBRICA":
-        Señal que actúa como cola circular - First In, First Out.
-        Comportamiento: Extracción desde el inicio con punteros circulares.
-        Tamaño: 10 elementos (configuración por defecto).
-
-        ✅ LSP APLICADO (CORRECCIONES):
-        - ✅ Constructor ahora acepta parámetro opcional
-        - ✅ Métodos con firmas consistentes con SenialBase
-        - ✅ Intercambiable polimórficamente con otras señales
-        - ✅ obtener_valor() implementa lógica circular correcta
-
-        :return: Instancia configurada de SenialCola (comportamiento FIFO)
-        :rtype: SenialCola
-        """
-        tamanio_cola = 10  # Configuración "de fábrica"
-        return SenialCola(tamanio_cola)
-
-    @staticmethod
-    def crear_senial_adquisidor():
-        """
-        🏭 FACTORY METHOD ESPECÍFICO - Señal para componentes de adquisición.
-
-        📖 PROPÓSITO:
-        Permite configurar tipos de señal específicos para adquisidores,
-        independientemente del tipo usado en procesadores.
-
-        🎯 EXPERIMENTOS LSP AVANZADOS:
-        Cambiar este método permite probar violaciones LSP específicas
-        en la fase de adquisición sin afectar el procesamiento.
-
-        Ejemplos experimentales:
-        - return Configurador.crear_senial_pila()   # ← Adquisición con LIFO
-        - return Configurador.crear_senial_cola()   # ← Adquisición con FIFO
-
-        :return: Señal configurada específicamente para adquisidores
-        :rtype: Senial
-        """
-        return Configurador.crear_senial_pila()
-
-    @staticmethod
-    def crear_senial_procesador():
-        """
-        🏭 FACTORY METHOD ESPECÍFICO - Señal para componentes de procesamiento.
-
-        📖 PROPÓSITO:
-        Permite configurar tipos de señal específicos para procesadores,
-        independientemente del tipo usado en adquisidores.
-
-        🎯 EXPERIMENTOS LSP AVANZADOS:
-        Cambiar este método permite probar violaciones LSP específicas
-        en la fase de procesamiento, creando inconsistencias interesantes.
-
-        🧪 ESCENARIOS EXPERIMENTALES:
-        - Adquisidor: Lista, Procesador: Pila  ← Inconsistencia mixta
-        - Adquisidor: Cola, Procesador: Lista  ← Transferencia problemática
-        - Adquisidor: Pila, Procesador: Cola   ← Semánticas opuestas
-
-        :return: Señal configurada específicamente para procesadores
-        :rtype: Senial
-        """
-        return Configurador.crear_senial_cola()
-
-    @staticmethod
-    def crear_persistidor_pickle():
-        """
-        🏭 FACTORY METHOD - Crea persistidor basado en pickle (serialización binaria).
-
-        📖 CONFIGURACIÓN "DE FÁBRICA":
-        Persistidor que usa pickle para serialización binaria eficiente.
-        Directorio: './datos_persistidos/adquisicion'
-
-        ✅ CARACTERÍSTICAS:
-        - Serialización rápida y eficiente
-        - Preserva estructura completa del objeto
-        - Formato binario (.pickle)
-
-        ⚠️ VIOLACIÓN ISP:
-        Este persistidor tiene métodos persistir() y recuperar() en la misma interfaz,
-        forzando a los clientes a depender de métodos que pueden no necesitar.
-
-        :return: Instancia configurada de PersistidorPickle
-        :rtype: PersistidorPickle
-        """
-        recurso = './datos_persistidos/adquisicion'
-        return PersistidorPickle(recurso)
-
-    @staticmethod
-    def crear_persistidor_archivo():
-        """
-        🏭 FACTORY METHOD - Crea persistidor basado en archivos de texto plano.
-
-        📖 CONFIGURACIÓN "DE FÁBRICA":
-        Persistidor que usa formato de texto plano con mapeo custom.
-        Directorio: './datos_persistidos/procesamiento'
-
-        ✅ CARACTERÍSTICAS:
-        - Formato de texto plano (.dat)
-        - Human-readable para debugging
-        - Soporta listas y colecciones
-
-        ⚠️ VIOLACIÓN ISP:
-        Este persistidor tiene métodos persistir() y recuperar() en la misma interfaz,
-        forzando a los clientes a depender de métodos que pueden no necesitar.
-
-        :return: Instancia configurada de PersistidorArchivo
-        :rtype: PersistidorArchivo
-        """
-        recurso = './datos_persistidos/procesamiento'
-        return PersistidorArchivo(recurso)
-
-    @staticmethod
-    def crear_persistidor_adquisidor():
-        """
-        🏭 FACTORY METHOD ESPECÍFICO - Persistidor para señales del adquisidor.
-
-        📖 PROPÓSITO:
-        Permite configurar persistidor específico para guardar señales adquiridas,
-        independientemente del persistidor usado para señales procesadas.
-
-        🎯 INYECCIÓN INDEPENDIENTE:
-        Permite experimentar con diferentes estrategias de persistencia por fase:
-        - Adquisidor puede usar Pickle (rápido)
-        - Procesador puede usar Archivo (human-readable)
-
-        ⚠️ VIOLACIÓN ISP PRESENTE:
-        El persistidor tiene métodos persistir() y recuperar() juntos,
-        aunque el adquisidor solo necesita persistir.
-
-        🧪 ESCENARIOS EXPERIMENTALES:
-        - return Configurador.crear_persistidor_pickle()   # ← Binario rápido
-        - return PersistidorArchivo('./datos_persistidos/adquisicion')  # ← Texto debuggeable
-
-        :return: Persistidor configurado para señales del adquisidor
-        :rtype: PersistidorPickle | PersistidorArchivo
-        """
-        recurso = './datos_persistidos/adquisicion'
-        return PersistidorArchivo(recurso)
-
-    @staticmethod
-    def crear_persistidor_procesador():
-        """
-        🏭 FACTORY METHOD ESPECÍFICO - Persistidor para señales del procesador.
-
-        📖 PROPÓSITO:
-        Permite configurar persistidor específico para guardar señales procesadas,
-        independientemente del persistidor usado para señales adquiridas.
-
-        🎯 INYECCIÓN INDEPENDIENTE:
-        Permite experimentar con diferentes estrategias de persistencia por fase:
-        - Señal original: carpeta adquisicion
-        - Señal procesada: carpeta procesamiento
-
-        ⚠️ VIOLACIÓN ISP PRESENTE:
-        El persistidor tiene métodos persistir() y recuperar() juntos,
-        aunque el procesador solo necesita persistir.
-
-        🧪 ESCENARIOS EXPERIMENTALES:
-        - return PersistidorPickle('./datos_persistidos/procesamiento')  # ← Binario
-        - return Configurador.crear_persistidor_archivo()  # ← Texto analizable
-
-        :return: Persistidor configurado para señales del procesador
-        :rtype: PersistidorPickle | PersistidorArchivo
-        """
-        recurso = './datos_persistidos/procesamiento'
-        return PersistidorPickle(recurso)
-
     # =========================================================================
-    # 🆕 FACTORY METHODS - PATRÓN REPOSITORY (API Nueva)
+    # CREACIÓN DE REPOSITORIOS (desde JSON)
     # =========================================================================
-
-    @staticmethod
-    def definir_contexto(recurso: str, tipo: str = 'pickle'):
-        """
-        🏭 FACTORY METHOD - Crea contexto de persistencia.
-
-        📖 CONFIGURACIÓN "DE FÁBRICA":
-        Decide el formato de persistencia según el parámetro 'tipo'.
-
-        🎯 ESTRATEGIA:
-        - 'pickle': Binario rápido, eficiente (ContextoPickle)
-        - 'archivo': Texto plano human-readable (ContextoArchivo)
-
-        ⚠️ VIOLACIÓN ISP:
-        El contexto tiene métodos persistir() y recuperar() en la misma interfaz,
-        forzando a los clientes a depender de métodos que pueden no necesitar.
-
-        🔄 INYECCIÓN DE DEPENDENCIAS:
-        Este método crea el contexto que será inyectado en el repositorio,
-        aplicando el principio DIP (Dependency Inversion Principle).
-
-        🧪 CASOS DE USO:
-        ```python
-        # Contexto binario para producción (rápido)
-        ctx = Configurador.definir_contexto('./datos', 'pickle')
-
-        # Contexto texto para debugging (human-readable)
-        ctx = Configurador.definir_contexto('./datos', 'archivo')
-        ```
-
-        :param recurso: Path del directorio de persistencia
-        :param tipo: Tipo de contexto ('pickle' o 'archivo')
-        :return: Contexto configurado
-        :rtype: BaseContexto
-        :raises ValueError: Si el tipo no es 'pickle' o 'archivo'
-        """
-        if tipo == 'pickle':
-            return ContextoPickle(recurso)
-        elif tipo == 'archivo':
-            return ContextoArchivo(recurso)
-        else:
-            raise ValueError(
-                f"Tipo de contexto no soportado: '{tipo}'. "
-                f"Valores válidos: 'pickle', 'archivo'"
-            )
-
-    @staticmethod
-    def definir_repositorio(contexto, tipo_entidad: str = 'senial'):
-        """
-        🏭 FACTORY METHOD - Crea repositorio con contexto inyectado.
-
-        📖 DIP APLICADO:
-        El repositorio recibe el contexto como dependencia externa,
-        permitiendo cambiar el formato de persistencia sin modificar
-        la lógica de dominio.
-
-        🎯 ESTRATEGIA:
-        - 'senial': RepositorioSenial (gestión de señales digitales)
-        - 'usuario': RepositorioUsuario (gestión de usuarios - futuro)
-
-        ✅ VENTAJAS DEL PATRÓN REPOSITORY:
-        - Abstrae la persistencia del dominio
-        - API semántica: guardar() / obtener() vs persistir() / recuperar()
-        - Centraliza lógica de acceso a datos
-        - Facilita testing con mocks
-
-        🔄 SEPARACIÓN DE RESPONSABILIDADES:
-        - Repositorio: QUÉ entidades se persisten (dominio)
-        - Contexto: CÓMO se persisten (infraestructura)
-
-        🧪 CASOS DE USO:
-        ```python
-        # Crear repositorio con contexto inyectado
-        ctx = Configurador.definir_contexto('./datos', 'pickle')
-        repo = Configurador.definir_repositorio(ctx, 'senial')
-
-        # Usar API de repositorio
-        repo.guardar(señal)
-        señal = repo.obtener(SenialLista(), '123')
-        ```
-
-        :param contexto: Contexto de persistencia (BaseContexto)
-        :param tipo_entidad: Tipo de entidad ('senial' o 'usuario')
-        :return: Repositorio configurado
-        :rtype: BaseRepositorio
-        :raises ValueError: Si el tipo_entidad no está soportado
-        """
-        if tipo_entidad == 'senial':
-            return RepositorioSenial(contexto)
-        elif tipo_entidad == 'usuario':
-            return RepositorioUsuario(contexto)
-        else:
-            raise ValueError(
-                f"Tipo de entidad no soportado: '{tipo_entidad}'. "
-                f"Valores válidos: 'senial', 'usuario'"
-            )
 
     @staticmethod
     def crear_repositorio_adquisicion():
         """
-        🏭 FACTORY METHOD ALTO NIVEL - Repositorio para señales adquiridas.
+        🏭 FACTORY METHOD - Repositorio para señales adquiridas (desde JSON).
 
-        📖 CONFIGURACIÓN COMPLETA:
-        Crea repositorio con contexto pre-configurado para fase de adquisición.
+        🔄 REFACTORIZADO V3.0: Usa factories directamente sin wrappers
 
-        🎯 DECISIONES "DE FÁBRICA":
-        - Contexto: Archivo de texto plano (human-readable para debugging)
-        - Directorio: './datos_persistidos/adquisicion'
-        - Entidad: Señal digital
-        - Formato archivo: .dat con metadatos de clase
+        📖 DIP APLICADO:
+        La configuración externa (JSON) determina:
+        - Tipo de contexto (pickle/archivo)
+        - Recurso/directorio de persistencia
 
-        ✅ CARACTERÍSTICAS:
-        - Reconstrucción automática (lee metadatos __class__)
-        - Formato inspectionable en editor de texto
-        - Ideal para verificar datos raw adquiridos
+        🔄 EQUIVALENTE A: definir_repositorio(ctx_datos_adquisicion) (versión XML v2.0.0)
 
-        🔄 PATRÓN REPOSITORY + DIP:
-        Este método encapsula la composición completa:
-        1. Crea contexto (infraestructura)
-        2. Inyecta en repositorio (dominio)
-        3. Retorna abstracción de alto nivel
+        XML: <contexto>pickle</contexto> + <dir_recurso_datos>./tmp/datos</dir_recurso_datos>
+        JSON: "contexto_adquisicion": {"tipo": "pickle", "recurso": "./tmp/datos/adquisicion"}
 
-        ⚠️ VIOLACIÓN ISP HEREDADA:
-        El repositorio usa contexto con interfaz "gorda" (persistir + recuperar).
+        🏭 FLUJO DIP:
+        JSON → CargadorConfig → FactoryContexto → RepositorioSenial
 
-        🧪 USO EN LANZADOR:
-        ```python
-        repo = Configurador.crear_repositorio_adquisicion()
-        repo.guardar(señal_adquirida)
-        ```
-
-        :return: Repositorio configurado para señales adquiridas
-        :rtype: RepositorioSenial
+        :return: Repositorio configurado desde JSON para señales adquiridas
         """
-        ctx = Configurador.definir_contexto('./datos_persistidos/adquisicion', 'archivo')
-        return Configurador.definir_repositorio(ctx, 'senial')
+        if Configurador._cargador is None:
+            # Fallback: sin configuración externa
+            config = {'recurso': './datos_persistidos/adquisicion'}
+            ctx = FactoryContexto.crear('archivo', config)
+            return RepositorioSenial(ctx)
+
+        # Leer configuración desde JSON
+        config = Configurador._cargador.obtener_config_contexto_adquisicion()
+        tipo = config.get('tipo', 'pickle')
+
+        # Crear contexto con FactoryContexto (sin wrapper)
+        ctx = FactoryContexto.crear(tipo, config)
+
+        # Crear repositorio directamente (sin wrapper)
+        return RepositorioSenial(ctx)
 
     @staticmethod
     def crear_repositorio_procesamiento():
         """
-        🏭 FACTORY METHOD ALTO NIVEL - Repositorio para señales procesadas.
+        🏭 FACTORY METHOD - Repositorio para señales procesadas (desde JSON).
 
-        📖 CONFIGURACIÓN COMPLETA:
-        Crea repositorio con contexto pre-configurado para fase de procesamiento.
+        🔄 REFACTORIZADO V3.0: Usa factories directamente sin wrappers
 
-        🎯 DECISIONES "DE FÁBRICA":
-        - Contexto: Pickle binario (serialización rápida)
-        - Directorio: './datos_persistidos/procesamiento'
-        - Entidad: Señal digital procesada
-        - Formato archivo: .pickle (binario eficiente)
+        📖 DIP APLICADO:
+        La configuración externa (JSON) determina:
+        - Tipo de contexto (pickle/archivo)
+        - Recurso/directorio de persistencia
 
-        ✅ CARACTERÍSTICAS:
-        - Serialización/deserialización automática completa
-        - Alta velocidad de lectura/escritura
-        - Preserva estructura completa de objetos Python
+        🔄 EQUIVALENTE A: definir_repositorio(ctx_datos_procesamiento) (versión XML v2.0.0)
 
-        🔄 PATRÓN REPOSITORY + DIP:
-        Este método encapsula la composición completa:
-        1. Crea contexto (infraestructura)
-        2. Inyecta en repositorio (dominio)
-        3. Retorna abstracción de alto nivel
+        XML: <contexto>pickle</contexto> + <dir_recurso_datos>./tmp/datos</dir_recurso_datos>
+        JSON: "contexto_procesamiento": {"tipo": "pickle", "recurso": "./tmp/datos/procesamiento"}
 
-        ⚠️ VIOLACIÓN ISP HEREDADA:
-        El repositorio usa contexto con interfaz "gorda" (persistir + recuperar).
+        🏭 FLUJO DIP:
+        JSON → CargadorConfig → FactoryContexto → RepositorioSenial
 
-        🧪 USO EN LANZADOR:
-        ```python
-        repo = Configurador.crear_repositorio_procesamiento()
-        repo.guardar(señal_procesada)
-        ```
-
-        :return: Repositorio configurado para señales procesadas
-        :rtype: RepositorioSenial
+        :return: Repositorio configurado desde JSON para señales procesadas
         """
-        ctx = Configurador.definir_contexto('./datos_persistidos/procesamiento', 'pickle')
-        return Configurador.definir_repositorio(ctx, 'senial')
+        if Configurador._cargador is None:
+            # Fallback: sin configuración externa
+            config = {'recurso': './datos_persistidos/procesamiento'}
+            ctx = FactoryContexto.crear('pickle', config)
+            return RepositorioSenial(ctx)
+
+        # Leer configuración desde JSON
+        config = Configurador._cargador.obtener_config_contexto_procesamiento()
+        tipo = config.get('tipo', 'pickle')
+
+        # Crear contexto con FactoryContexto (sin wrapper)
+        ctx = FactoryContexto.crear(tipo, config)
+
+        # Crear repositorio directamente (sin wrapper)
+        return RepositorioSenial(ctx)

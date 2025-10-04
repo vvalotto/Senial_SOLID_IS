@@ -11,8 +11,8 @@ else:
 
 setup(
     name="dominio-senial",
-    version="4.0.0",
-    description="Entidades del dominio con LSP aplicado - SenialBase + implementaciones polimórficas",
+    version="5.0.0",
+    description="Factory Pattern para entidades del dominio con LSP + Configuración Externa",
     long_description=README,
     long_description_content_type="text/markdown",
     author="Victor Valotto",

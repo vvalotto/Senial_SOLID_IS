@@ -1,25 +1,28 @@
 """
-Paquete lanzador - Orquestador principal del sistema
+Paquete lanzador - Orquestador principal del sistema con DIP Completo
 
 Este paquete contiene el lanzador principal que orquesta el flujo completo
-de procesamiento de señales aplicando los principios SOLID.
+de procesamiento de señales aplicando los principios SOLID con configuración
+externa JSON.
 
 🎯 RESPONSABILIDAD ÚNICA (SRP):
-Coordinar y orquestar el flujo entre componentes sin conocer detalles de implementación.
+Coordinar y orquestar el flujo entre componentes sin conocer detalles de
+implementación ni tipos concretos.
 
-✅ PRINCIPIOS SOLID APLICADOS:
+✅ PRINCIPIOS SOLID APLICADOS (COMPLETOS):
 - SRP: Orquestación pura, sin lógica de negocio
-- OCP: Extensible mediante Configurador
+- OCP: Extensible editando JSON, sin modificar código
 - LSP: Trabaja con abstracciones de señales
 - ISP: No depende de interfaces innecesarias
-- DIP: Usa componentes inyectados por Configurador
+- DIP: **Configuración externa (JSON) determina TODAS las dependencias**
 
-🔄 CORRECCIÓN ISP (v6.0.0):
-- Auditoría y trazabilidad internas al repositorio
-- Lanzador NO llama auditar() ni trazar() explícitamente
-- Cumple SRP: solo orquesta, no supervisa
+🎯 DIP COMPLETO (v6.0.0):
+- Configuración desde config.json
+- Lanzador NO conoce tipos concretos
+- Solo conoce abstracciones y métodos del Configurador
+- Cambiar comportamiento: editar JSON, no código
 
-Versión: 6.0.0
+Versión: 6.0.0 - DIP Completo con Configuración Externa JSON
 Autor: Victor Valotto
 """
 

@@ -1,12 +1,12 @@
-# Persistidor de Señales - Repository Pattern
+# Persistidor de Señales - Repository + Factory Pattern
 
-**Versión**: 6.0.0
+**Versión**: 7.0.0
 **Autor**: Victor Valotto
-**Objetivo**: Demostración del Repository Pattern + ISP Correctamente Aplicado
+**Objetivo**: Demostración del Repository Pattern + ISP + Factory Pattern + Configuración Externa
 
 ## 📋 Descripción
 
-Este paquete implementa el **Patrón Repository** para la persistencia de señales digitales, separando claramente la **lógica de dominio** (Repositorio) de la **infraestructura de persistencia** (Contexto).
+Este paquete implementa el **Patrón Repository** para la persistencia de señales digitales, separando claramente la **lógica de dominio** (Repositorio) de la **infraestructura de persistencia** (Contexto), con **Factory Pattern** para creación configurable desde JSON externo.
 
 ## 🏗️ Arquitectura - Repository Pattern con ISP
 
@@ -123,6 +123,118 @@ class RepositorioUsuario(BaseRepositorio):
 ✅ **APLICADO CORRECTAMENTE**:
 - Repositorio depende de abstracción `BaseContexto`, no de implementaciones concretas
 - Contexto inyectado vía constructor: `RepositorioSenial(contexto)`
+- **Configuración externa** (JSON) determina la estrategia de persistencia
+
+## 🏭 Factory Pattern - Creación Configurable
+
+### 🔹 FactoryContexto (Versión 7.0.0)
+
+**Responsabilidad**: Crear contextos de persistencia con diferentes estrategias según configuración externa.
+
+```python
+from persistidor_senial import FactoryContexto
+
+class FactoryContexto:
+    """
+    ✅ Factory especializado para contextos de persistencia.
+
+    🎯 STRATEGY PATTERN:
+    Cada contexto implementa una estrategia diferente:
+    - ContextoPickle: Serialización binaria (rápida)
+    - ContextoArchivo: Texto plano (human-readable)
+    """
+
+    @staticmethod
+    def crear(tipo_contexto: str, config: dict) -> BaseContexto:
+        """
+        Crea contexto con estrategia específica.
+
+        :param tipo_contexto: 'pickle' o 'archivo'
+        :param config: {'recurso': str} (path del directorio)
+        :return: Contexto configurado
+        """
+        recurso = config.get('recurso')
+
+        if tipo_contexto == 'pickle':
+            return ContextoPickle(recurso)
+        elif tipo_contexto == 'archivo':
+            return ContextoArchivo(recurso)
+        else:
+            raise ValueError(f"Tipo no soportado: '{tipo_contexto}'")
+```
+
+### 📋 Uso del Factory
+
+**Ejemplo 1: Uso directo**
+
+```python
+from persistidor_senial import FactoryContexto
+
+# Configuración (puede venir de JSON)
+config = {'recurso': './datos_persistidos/adquisicion'}
+
+# Crear contexto con estrategia específica
+contexto = FactoryContexto.crear('archivo', config)
+# → Retorna ContextoArchivo('./datos_persistidos/adquisicion')
+```
+
+**Ejemplo 2: Con configuración JSON**
+
+```python
+import json
+from persistidor_senial import FactoryContexto, RepositorioSenial
+
+# 1. Leer configuración externa
+with open('config.json', 'r') as f:
+    json_config = json.load(f)
+
+# 2. Extraer config del contexto
+ctx_config = json_config['contexto_adquisicion']
+# {'tipo': 'archivo', 'recurso': './datos_persistidos/adquisicion'}
+
+# 3. Factory crea contexto según config
+contexto = FactoryContexto.crear(ctx_config['tipo'], ctx_config)
+
+# 4. Inyectar en repositorio (DIP)
+repositorio = RepositorioSenial(contexto)
+
+# 5. Usar repositorio
+repositorio.guardar(senial)
+```
+
+### 🔄 Configuración JSON Ejemplo
+
+```json
+{
+  "contexto_adquisicion": {
+    "tipo": "archivo",
+    "recurso": "./datos_persistidos/adquisicion"
+  },
+  "contexto_procesamiento": {
+    "tipo": "pickle",
+    "recurso": "./datos_persistidos/procesamiento"
+  }
+}
+```
+
+### 📊 Comparativa de Estrategias
+
+| Característica | ContextoPickle (`pickle`) | ContextoArchivo (`archivo`) |
+|----------------|---------------------------|------------------------------|
+| **Formato** | Binario | Texto plano |
+| **Velocidad** | ⚡ Rápido | 🐢 Más lento |
+| **Legibilidad** | ❌ No human-readable | ✅ Human-readable |
+| **Debugging** | ❌ Difícil | ✅ Fácil (inspeccionar en editor) |
+| **Extensión** | `.pickle` | `.dat` |
+| **Uso ideal** | Producción (velocidad) | Desarrollo (debugging) |
+| **Reconstrucción** | Automática | Requiere metadatos de clase |
+
+### ✅ Beneficios del Factory
+
+1. **Configuración Externa**: Cambiar estrategia sin modificar código
+2. **Valores por Defecto**: Parámetro `recurso` obligatorio, validado
+3. **Strategy Pattern**: Diferentes estrategias intercambiables
+4. **DIP Aplicado**: Configurador decide, Factory ensambla
 
 ## 🏗️ Componentes
 
