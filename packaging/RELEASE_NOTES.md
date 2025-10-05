@@ -1,13 +1,13 @@
-# Senial SOLID v6.0.0 - DIP Completo con Paquetización Multiplataforma
+# Senial SOLID v6.0.0 - DIP Completo con Bundle de Instalación Simplificada
 
-Release mayor que implementa **DIP completo** con configuración externa JSON, **Factories especializados** delegados, y **infraestructura completa de build y distribución multiplataforma**.
+Release mayor que implementa **DIP completo** con configuración externa JSON, **Factories especializados** delegados, y **bundle auto-contenido** para instalación simplificada.
 
 ## 🎯 Características Principales
 
 ### ✨ DIP y Configuración Externa
 - **CargadorConfig** con ruta dinámica basada en `__file__`
-- **config.json** como configuración externa del sistema
-- Inicialización desde JSON en `Configurador.inicializar_configuracion()`
+- **config.json** incluido en paquete configurador y en bundle
+- Inicialización automática desde JSON en `Configurador.inicializar_configuracion()`
 - Configuración versionable y portable
 
 ### 🏭 Factories Especializados
@@ -16,46 +16,48 @@ Release mayor que implementa **DIP completo** con configuración externa JSON, *
 - **FactoryProcesador** - Crea procesadores según configuración
 - **FactoryContexto** - Crea contextos de persistencia
 
-### 📦 Infraestructura de Build y Distribución
-- **Meta-paquete senial-solid** - Instala todo el sistema con un comando
-- Scripts de build para Linux/macOS y Windows
-- Scripts de instalación multiplataforma
-- Instalación remota desde GitHub Release
+### 📦 Bundle de Instalación Auto-Contenido
+- **Archivo único**: `senial_solid-v6.0.0.tar.gz` (~64KB)
+- **Contenido completo**: Todos los wheels + config.json + instalador
+- **Instalación simplificada**: Descomprimir y ejecutar `./install.sh`
+- **Sin dependencias externas**: Todo incluido en el bundle
 
 ## 🚀 Instalación Rápida
 
-### Desde GitHub Release (recomendado)
+### Desde GitHub Release (Recomendado)
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/vvalotto/Senial_SOLID_IS/main/packaging/install/install_from_github.sh | bash
+# 1. Descargar bundle
+curl -L -O https://github.com/vvalotto/Senial_SOLID_IS/releases/download/v6.0.0/senial_solid-v6.0.0.tar.gz
+
+# 2. Descomprimir
+tar -xzf senial_solid-v6.0.0.tar.gz
+cd senial_solid-v6.0.0
+
+# 3. Instalar
+./install.sh
+
+# 4. Activar y ejecutar
+source senial_env/bin/activate
+senial-solid
 ```
 
-### Instalación Manual
+El instalador automáticamente:
+- ✅ Crea entorno virtual `senial_env`
+- ✅ Instala todos los paquetes
+- ✅ Configura `~/.senial_solid/` con config.json y directorios
 
-**IMPORTANTE**: Descarga TODOS los wheels del release e instálalos en orden:
-
-```bash
-# Opción A: Instalar todos a la vez (más simple)
-pip install *.whl
-
-# Opción B: Instalar en orden de dependencias
-pip install supervisor-1.0.0-py3-none-any.whl
-pip install dominio_senial-5.0.0-py3-none-any.whl
-pip install adquisicion_senial-3.0.0-py3-none-any.whl
-pip install procesamiento_senial-3.0.0-py3-none-any.whl
-pip install presentacion_senial-2.0.0-py3-none-any.whl
-pip install persistidor_senial-7.0.0-py3-none-any.whl
-pip install configurador-3.0.0-py3-none-any.whl
-pip install lanzador-6.0.0-py3-none-any.whl
-pip install senial_solid-6.0.0-py3-none-any.whl
-```
-
-### Desde Código Fuente
+### Desde Código Fuente (Desarrollo)
 
 ```bash
 git clone https://github.com/vvalotto/Senial_SOLID_IS.git
 cd Senial_SOLID_IS
+
+# Build y crear bundle
 ./packaging/build/build_all.sh
+./packaging/build/create_bundle.sh
+
+# Instalar desde el repositorio
 ./packaging/install/install.sh
 ```
 
@@ -90,8 +92,8 @@ cd Senial_SOLID_IS
 ## ⚙️ Requisitos
 
 - Python >= 3.8
-- pip >= 21.0
-- Linux, macOS o Windows
+- pip
+- Linux o macOS (instalador bash)
 
 ## 🔗 Enlaces
 

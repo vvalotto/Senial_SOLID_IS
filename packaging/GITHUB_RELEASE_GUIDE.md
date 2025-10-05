@@ -1,19 +1,39 @@
 # Guía para crear GitHub Release v6.0.0
 
-Esta guía explica cómo crear el release en GitHub y subir los artefactos.
+Esta guía explica cómo crear el release en GitHub con el bundle de instalación.
 
-## Paso 1: Build de los artefactos
+## Paso 1: Build del Bundle
 
 ```bash
-# Ejecutar build completo
+# 1. Ejecutar build completo
 ./packaging/build/build_all.sh
 
-# Verificar que se generaron 9 wheels + 9 source distributions
-ls packaging/release/wheels/
-ls packaging/release/source/
+# 2. Crear bundle de distribución
+./packaging/build/create_bundle.sh
+
+# 3. Verificar que se generó el bundle
+ls -lh packaging/release/senial_solid-v6.0.0.tar.gz
 ```
 
-## Paso 2: Crear el Release en GitHub
+**Resultado esperado**:
+- ✅ 9 wheels en `packaging/release/wheels/`
+- ✅ 9 source distributions en `packaging/release/source/`
+- ✅ Bundle comprimido: `senial_solid-v6.0.0.tar.gz` (~64KB)
+
+## Paso 2: Verificar el Bundle
+
+```bash
+# Listar contenido del bundle
+tar -tzf packaging/release/senial_solid-v6.0.0.tar.gz
+
+# Debe contener:
+# - senial_solid-v6.0.0/wheels/*.whl (9 archivos)
+# - senial_solid-v6.0.0/config.json
+# - senial_solid-v6.0.0/install.sh
+# - senial_solid-v6.0.0/README.txt
+```
+
+## Paso 3: Crear el Release en GitHub
 
 ### Opción A: Interfaz Web
 
@@ -22,20 +42,12 @@ ls packaging/release/source/
 2. **Tag version**: `v6.0.0`
    - Crear nuevo tag desde `main` branch
 
-3. **Release title**: `v6.0.0 - DIP Completo con Paquetización Multiplataforma`
+3. **Release title**: `v6.0.0 - DIP Completo con Bundle de Instalación Simplificada`
 
-4. **Description**: (copiar el texto de abajo)
+4. **Description**: (copiar el texto de `RELEASE_NOTES.md`)
 
-5. **Attach binaries**: Subir los 9 wheels:
-   - `packaging/release/wheels/supervisor-1.0.0-py3-none-any.whl`
-   - `packaging/release/wheels/dominio_senial-5.0.0-py3-none-any.whl`
-   - `packaging/release/wheels/adquisicion_senial-3.0.0-py3-none-any.whl`
-   - `packaging/release/wheels/procesamiento_senial-3.0.0-py3-none-any.whl`
-   - `packaging/release/wheels/presentacion_senial-2.0.0-py3-none-any.whl`
-   - `packaging/release/wheels/persistidor_senial-7.0.0-py3-none-any.whl`
-   - `packaging/release/wheels/configurador-3.0.0-py3-none-any.whl`
-   - `packaging/release/wheels/lanzador-6.0.0-py3-none-any.whl`
-   - `packaging/release/wheels/senial_solid-6.0.0-py3-none-any.whl`
+5. **Attach binaries**: Subir el bundle:
+   - `packaging/release/senial_solid-v6.0.0.tar.gz`
 
 6. Marcar como **Latest release**
 
@@ -49,145 +61,74 @@ ls packaging/release/source/
 # Autenticarse
 gh auth login
 
-# Crear release y subir wheels
+# Crear release y subir bundle
 gh release create v6.0.0 \
-  --title "v6.0.0 - DIP Completo con Paquetización Multiplataforma" \
+  --title "v6.0.0 - DIP Completo con Bundle de Instalación Simplificada" \
   --notes-file packaging/RELEASE_NOTES.md \
-  packaging/release/wheels/*.whl
+  packaging/release/senial_solid-v6.0.0.tar.gz
 ```
 
 ---
 
-## Texto para la Descripción del Release
-
-```markdown
-# Senial SOLID v6.0.0 - DIP Completo con Paquetización Multiplataforma
-
-Release mayor que implementa **DIP completo** con configuración externa JSON, **Factories especializados** delegados, y **infraestructura completa de build y distribución multiplataforma**.
-
-## 🎯 Características Principales
-
-### ✨ DIP y Configuración Externa
-- **CargadorConfig** con ruta dinámica basada en `__file__`
-- **config.json** como configuración externa del sistema
-- Inicialización desde JSON en `Configurador.inicializar_configuracion()`
-- Configuración versionable y portable
-
-### 🏭 Factories Especializados
-- **FactorySenial** - Crea SenialLista, SenialPila, SenialCola
-- **FactoryAdquisidor** - Crea adquisidores según configuración
-- **FactoryProcesador** - Crea procesadores según configuración
-- **FactoryContexto** - Crea contextos de persistencia
-
-### 📦 Infraestructura de Build y Distribución
-- **Meta-paquete senial-solid** - Instala todo el sistema con un comando
-- Scripts de build para Linux/macOS y Windows
-- Scripts de instalación multiplataforma
-- Instalación remota desde GitHub Release
-
-## 🚀 Instalación Rápida
-
-### Desde GitHub Release (recomendado)
-
-```bash
-curl -sSL https://raw.githubusercontent.com/vvalotto/Senial_SOLID_IS/main/packaging/install/install_from_github.sh | bash
-```
-
-### Instalación Manual
-
-```bash
-# Descargar wheels de este release
-# Luego instalar:
-pip install senial_solid-6.0.0-py3-none-any.whl
-```
-
-### Desde Código Fuente
-
-```bash
-git clone https://github.com/vvalotto/Senial_SOLID_IS.git
-cd Senial_SOLID_IS
-./packaging/build/build_all.sh
-./packaging/install/install.sh
-```
-
-## 📋 Componentes Incluidos
-
-| Paquete | Versión | Descripción |
-|---------|---------|-------------|
-| **senial-solid** | 6.0.0 | Meta-paquete (instala todos) |
-| **lanzador** | 6.0.0 | Orquestador principal |
-| **configurador** | 3.0.0 | Factory con config JSON (DIP) |
-| **persistidor-senial** | 7.0.0 | Persistencia con Repository |
-| **dominio-senial** | 5.0.0 | Entidades del dominio |
-| **adquisicion-senial** | 3.0.0 | Adquisidores de señales |
-| **procesamiento-senial** | 3.0.0 | Procesadores de señales |
-| **presentacion-senial** | 2.0.0 | Visualización |
-| **supervisor** | 1.0.0 | Auditoría y trazabilidad (ISP) |
-
-## 🎓 Principios SOLID Aplicados
-
-- **✅ S (SRP)**: Factories especializados, CargadorConfig separado
-- **✅ O (OCP)**: Extensible mediante config JSON sin modificar código
-- **✅ L (LSP)**: Jerarquía SenialBase con intercambiabilidad garantizada
-- **✅ I (ISP)**: Interfaces segregadas (BaseAuditor, BaseTrazador)
-- **✅ D (DIP)**: Configuración externa JSON determina TODAS las dependencias
-
-## 📚 Documentación
-
-- [README principal](https://github.com/vvalotto/Senial_SOLID_IS/blob/main/README.md)
-- [CHANGELOG completo](https://github.com/vvalotto/Senial_SOLID_IS/blob/main/CHANGELOG_v6.0.0.md)
-- [Plan de Paquetización](https://github.com/vvalotto/Senial_SOLID_IS/blob/main/docs/PLAN_PAQUETIZACION_PASO_A_PASO.md)
-
-## ⚙️ Requisitos
-
-- Python >= 3.8
-- pip >= 21.0
-- Linux, macOS o Windows
-
-## 🔗 Enlaces
-
-- **Repositorio**: https://github.com/vvalotto/Senial_SOLID_IS
-- **Licencia**: MIT
-- **Autor**: Victor Valotto - vvalotto@gmail.com
-
----
-
-**Fecha de Release**: 2025-10-04
-**Tag**: v6.0.0
-```
-
----
-
-## Paso 3: Verificar el Release
+## Paso 4: Verificar el Release
 
 Después de publicar, verificar:
 
 1. **URL del release**: https://github.com/vvalotto/Senial_SOLID_IS/releases/tag/v6.0.0
 
-2. **Probar instalación remota**:
+2. **Probar descarga del bundle**:
 ```bash
-curl -sSL https://raw.githubusercontent.com/vvalotto/Senial_SOLID_IS/main/packaging/install/install_from_github.sh | bash
+curl -L -O https://github.com/vvalotto/Senial_SOLID_IS/releases/download/v6.0.0/senial_solid-v6.0.0.tar.gz
 ```
 
-3. **Verificar que los wheels se descarguen**:
+3. **Probar instalación completa**:
 ```bash
-curl -L -O https://github.com/vvalotto/Senial_SOLID_IS/releases/download/v6.0.0/senial_solid-6.0.0-py3-none-any.whl
+# Descargar bundle
+curl -L -O https://github.com/vvalotto/Senial_SOLID_IS/releases/download/v6.0.0/senial_solid-v6.0.0.tar.gz
+
+# Descomprimir
+tar -xzf senial_solid-v6.0.0.tar.gz
+cd senial_solid-v6.0.0
+
+# Instalar
+./install.sh
+
+# Verificar
+source senial_env/bin/activate
+senial-solid
 ```
 
-## Paso 4: Actualizar README principal
+---
 
-Agregar badge y sección de instalación en README.md:
+## Paso 5: Actualizar README principal
+
+Agregar badge y sección de instalación en el README.md del proyecto:
 
 ```markdown
 [![Release](https://img.shields.io/github/v/release/vvalotto/Senial_SOLID_IS)](https://github.com/vvalotto/Senial_SOLID_IS/releases/latest)
 
-## Instalación
+## 🚀 Instalación Rápida
 
 ### Desde GitHub Release
+
 \```bash
-curl -sSL https://raw.githubusercontent.com/vvalotto/Senial_SOLID_IS/main/packaging/install/install_from_github.sh | bash
+# 1. Descargar bundle
+curl -L -O https://github.com/vvalotto/Senial_SOLID_IS/releases/download/v6.0.0/senial_solid-v6.0.0.tar.gz
+
+# 2. Descomprimir
+tar -xzf senial_solid-v6.0.0.tar.gz
+cd senial_solid-v6.0.0
+
+# 3. Instalar
+./install.sh
+
+# 4. Activar y ejecutar
+source senial_env/bin/activate
+senial-solid
 \```
 ```
+
+---
 
 ## Troubleshooting
 
@@ -195,15 +136,62 @@ curl -sSL https://raw.githubusercontent.com/vvalotto/Senial_SOLID_IS/main/packag
 - Verificar que el release esté publicado
 - Verificar que el tag sea exactamente `v6.0.0`
 
-### Error descargando wheels
-- Verificar que los 9 wheels estén adjuntos al release
+### Error descargando bundle
+- Verificar que el bundle esté adjunto al release
 - Verificar que el repositorio sea público o tengas acceso
+- URL correcta: `https://github.com/vvalotto/Senial_SOLID_IS/releases/download/v6.0.0/senial_solid-v6.0.0.tar.gz`
 
-### Permisos de curl
-Si el script falla con permisos:
+### Error al ejecutar install.sh
 ```bash
-# Descargar y ejecutar manualmente
-curl -sSL https://raw.githubusercontent.com/vvalotto/Senial_SOLID_IS/main/packaging/install/install_from_github.sh -o install.sh
+# Dar permisos de ejecución
 chmod +x install.sh
 ./install.sh
 ```
+
+### Error de permisos con curl
+```bash
+# Descargar manualmente desde:
+# https://github.com/vvalotto/Senial_SOLID_IS/releases/tag/v6.0.0
+# Luego descomprimir y ejecutar install.sh
+```
+
+---
+
+## Distribución Alternativa
+
+Si prefieres distribuir los wheels por separado (sin bundle):
+
+```bash
+# Subir todos los wheels individuales
+gh release create v6.0.0 \
+  --title "v6.0.0 - DIP Completo" \
+  --notes-file packaging/RELEASE_NOTES.md \
+  packaging/release/wheels/*.whl
+
+# Instrucciones de instalación manual:
+# pip install supervisor-1.0.0-py3-none-any.whl
+# pip install dominio_senial-5.0.0-py3-none-any.whl
+# ... (resto de paquetes)
+```
+
+**Recomendación**: Usar el bundle es más simple para el usuario final.
+
+---
+
+## Checklist de Release
+
+- [ ] Build completado (`./packaging/build/build_all.sh`)
+- [ ] Bundle creado (`./packaging/build/create_bundle.sh`)
+- [ ] Bundle verificado (`tar -tzf senial_solid-v6.0.0.tar.gz`)
+- [ ] Release creado en GitHub con tag `v6.0.0`
+- [ ] Bundle subido al release
+- [ ] Descarga del bundle verificada
+- [ ] Instalación desde bundle probada
+- [ ] README principal actualizado con instrucciones
+- [ ] Badge de release agregado
+
+---
+
+**Fecha de Release**: 2025-10-04
+**Tag**: v6.0.0
+**Archivo**: senial_solid-v6.0.0.tar.gz (~64KB)

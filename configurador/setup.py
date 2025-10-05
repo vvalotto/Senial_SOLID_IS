@@ -17,6 +17,10 @@ setup(
     author="Victor Valotto",
     package_dir={'configurador': '.'},
     packages=['configurador'],
+    package_data={
+        'configurador': ['config.json'],
+    },
+    include_package_data=True,
     install_requires=[
         "dominio-senial>=5.0.0",
         "adquisicion-senial>=3.0.0",
